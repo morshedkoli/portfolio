@@ -1,152 +1,142 @@
 # Portfolio Website
 
-A modern, interactive portfolio website built with Next.js, featuring 3D animations, particle effects, and smooth transitions.
+A modern, responsive portfolio website built with Next.js, TypeScript, and MongoDB.
 
-## Features
+## 🚀 Features
 
-- 🎨 **Modern Design**: Clean, professional layout with dark theme
-- 🎭 **3D Animations**: Interactive 3D elements using Three.js and React Three Fiber
-- ✨ **Particle Effects**: Dynamic particle background for visual appeal
-- 📱 **Responsive**: Fully responsive design that works on all devices
-- 🎯 **Smooth Animations**: Framer Motion for buttery smooth transitions
-- 🚀 **Performance**: Optimized for fast loading and smooth interactions
-- 📧 **Contact Form**: Interactive contact form with validation
-- 🎪 **Interactive Elements**: Hover effects and micro-interactions
+- **Modern Design**: Clean, professional layout with smooth animations
+- **Responsive**: Optimized for all device sizes
+- **Admin Panel**: Content management system for projects, skills, and profile
+- **3D Elements**: Interactive particle background using Three.js
+- **Database Integration**: MongoDB with Prisma ORM
+- **TypeScript**: Full type safety throughout the application
 
-## Tech Stack
+## 🛠️ Tech Stack
 
-- **Framework**: Next.js 14 with App Router
-- **Language**: TypeScript
+- **Frontend**: Next.js 14, React 18, TypeScript
 - **Styling**: Tailwind CSS
-- **3D Graphics**: Three.js, React Three Fiber, React Three Drei
-- **Animations**: Framer Motion
+- **Database**: MongoDB with Prisma
+- **Animations**: Framer Motion, Three.js
 - **Icons**: Lucide React
-- **Development**: ESLint, TypeScript
+- **Deployment**: Vercel
 
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm or yarn
-
-### Installation
+## 📦 Installation
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone <your-repo-url>
 cd portfolio
 ```
 
 2. Install dependencies:
 ```bash
 npm install
-# or
-yarn install
 ```
 
-3. Run the development server:
+3. Set up environment variables:
+```bash
+cp .env.example .env.local
+```
+
+4. Update the `.env.local` file with your actual values:
+- MongoDB connection string
+- Admin credentials
+- NextAuth configuration
+
+5. Generate Prisma client:
+```bash
+npx prisma generate
+```
+
+6. Run the development server:
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+## 🚀 Deployment on Vercel
 
-## Project Structure
+### Prerequisites
+- Vercel account
+- MongoDB Atlas database
+- GitHub repository
+
+### Step-by-Step Deployment
+
+1. **Push to GitHub**:
+   ```bash
+   git add .
+   git commit -m "Ready for deployment"
+   git push origin main
+   ```
+
+2. **Connect to Vercel**:
+   - Go to [vercel.com](https://vercel.com)
+   - Import your GitHub repository
+   - Vercel will auto-detect Next.js settings
+
+3. **Configure Environment Variables**:
+   In your Vercel dashboard, add these environment variables:
+   ```
+   DATABASE_URL=mongodb+srv://...
+   ADMIN_USERNAME=your_admin_username
+   ADMIN_PASSWORD=your_secure_password
+   NEXTAUTH_SECRET=your_nextauth_secret
+   NEXTAUTH_URL=https://your-domain.vercel.app
+   ```
+
+4. **Generate NextAuth Secret**:
+   ```bash
+   openssl rand -base64 32
+   ```
+
+5. **Deploy**:
+   - Click "Deploy" in Vercel
+   - Your site will be live at `https://your-project.vercel.app`
+
+### Important Notes
+
+- ✅ All API routes have proper TypeScript imports
+- ✅ Build process is optimized for production
+- ✅ Environment variables are properly configured
+- ✅ Database connection is production-ready
+- ✅ Middleware is correctly set up
+
+## 📁 Project Structure
 
 ```
 portfolio/
 ├── app/
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
-├── components/
-│   ├── About.tsx
-│   ├── Contact.tsx
-│   ├── Hero.tsx
-│   ├── Loading.tsx
-│   ├── Navigation.tsx
-│   ├── ParticleBackground.tsx
-│   ├── Projects.tsx
-│   └── Skills.tsx
-├── public/
-├── next.config.js
-├── tailwind.config.js
-├── tsconfig.json
-└── package.json
+│   ├── admin/          # Admin panel pages
+│   ├── api/            # API routes
+│   ├── globals.css     # Global styles
+│   ├── layout.tsx      # Root layout
+│   └── page.tsx        # Home page
+├── components/         # React components
+├── lib/               # Utility libraries
+├── prisma/            # Database schema
+├── public/            # Static assets
+└── scripts/           # Database seeding scripts
 ```
 
-## Customization
+## 🔧 Available Scripts
 
-### Personal Information
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
 
-Update the following files with your personal information:
+## 🔐 Admin Access
 
-- `components/Hero.tsx` - Main headline and introduction
-- `components/About.tsx` - About section content
-- `components/Skills.tsx` - Your skills and technologies
-- `components/Projects.tsx` - Your projects and portfolio items
-- `components/Contact.tsx` - Contact information and social links
+Access the admin panel at `/admin/login` with your configured credentials.
 
-### Styling
-
-- Colors and theme can be customized in `tailwind.config.js`
-- Global styles are in `app/globals.css`
-- Component-specific styles use Tailwind CSS classes
-
-### 3D Elements
-
-- Particle system configuration in `components/ParticleBackground.tsx`
-- 3D sphere animation in `components/Hero.tsx`
-- Three.js settings can be adjusted in respective components
-
-## Deployment
-
-### Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Deploy automatically
-
-### Other Platforms
-
-```bash
-# Build for production
-npm run build
-
-# Start production server
-npm start
-```
-
-## Performance Optimization
-
-- Images are optimized using Next.js Image component
-- 3D elements are lazy-loaded with Suspense
-- Animations are optimized for 60fps
-- Code splitting is handled automatically by Next.js
-
-## Browser Support
-
-- Chrome (recommended)
-- Firefox
-- Safari
-- Edge
-
-Note: 3D features require WebGL support.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
-
-## License
+## 📝 License
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## Contact
+## 🤝 Contributing
 
-For questions or suggestions, please reach out through the contact form on the website or create an issue in this repository.
+Contributions, issues, and feature requests are welcome!
+
+## 📞 Support
+
+If you have any questions or need help with deployment, please open an issue.
