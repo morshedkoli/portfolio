@@ -5,7 +5,7 @@ import { Metadata, Viewport } from 'next'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Portfolio | Web Developer',
+  title: 'murshedkoli | Web Developer',
   description: 'A modern portfolio website showcasing web development skills with 3D animations and interactive elements.',
   keywords: 'web developer, portfolio, react, nextjs, 3d, animation, frontend, backend',
   authors: [{ name: 'Web Developer' }],
