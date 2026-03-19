@@ -1,0 +1,317 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  username  String   @unique
+  password  String
+  name      String
+  email     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  title       String
+  description String
+  email       String
+  phone       String?
+  location    String?
+  avatar      String?
+  heroImage   String?
+  resume      String?
+  socialLinks Json?    // {github, linkedin, twitter, etc.}
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Project lifecycle status enum
+enum ProjectLifecycleStatus {
+  idea
+  planning
+  design
+  development
+  testing
+  deployment
+  live
+}
+
+// Feature status enum
+enum FeatureStatus {
+  planned
+  in_progress
+  completed
+}
+
+// Task status enum
+enum TaskStatus {
+  backlog
+  todo
+  in_progress
+  review
+  completed
+}
+
+// Task priority enum
+enum TaskPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+// Tech stack category enum
+enum TechCategory {
+  frontend
+  backend
+  database
+  devops
+  ai
+  other
+}
+
+// Flow node type enum
+enum FlowNodeType {
+  api
+  ui
+  database
+  logic
+  service
+  external
+}
+
+// Embedded types for MongoDB
+type TechStackItem {
+  name        String
+  category    TechCategory
+  icon        String?
+}
+
+type FeatureItem {
+  id          String
+  title       String
+  description String?
+  status      FeatureStatus
+  order       Int
+}
+
+type TaskItem {
+  id          String
+  title       String
+  description String?
+  assignedTo  String?
+  status      TaskStatus
+  priority    TaskPriority
+  startDate   DateTime?
+  endDate     DateTime?
+  order       Int
+}
+
+type ModuleItem {
+  id          String
+  name        String
+  description String?
+  status      FeatureStatus
+  tasks       TaskItem[]
+  order       Int
+}
+
+type RoadmapPhase {
+  id          String
+  phaseName   String
+  description String?
+  order       Int
+  progress    Int         @default(0)
+}
+
+type FlowNode {
+  id          String
+  label       String
+  type        FlowNodeType
+  positionX   Float
+  positionY   Float
+  data        String?     // JSON string for extra data
+}
+
+type FlowEdge {
+  id          String
+  source      String
+  target      String
+  label       String?
+  animated    Boolean?
+}
+
+type FlowDiagram {
+  nodes       FlowNode[]
+  edges       FlowEdge[]
+}
+
+type ApiEndpoint {
+  id          String
+  endpoint    String
+  method      String      // GET, POST, PUT, DELETE, PATCH
+  description String?
+  requestBody String?     // JSON schema or example
+  responseBody String?    // JSON schema or example
+}
+
+type DatabaseCollection {
+  id          String
+  collection  String
+  fields      String      // JSON string of fields
+  description String?
+}
+
+type DeploymentInfo {
+  platform    String?     // vercel, aws, gcp, azure, etc.
+  domain      String?
+  environment String?     // production, staging, development
+  ciCd        String?     // github-actions, jenkins, etc.
+  repository  String?
+  branch      String?
+}
+
+model Project {
+  id                String                  @id @default(auto()) @map("_id") @db.ObjectId
+  title             String
+  slug              String                  @unique
+  description       String
+  longDescription   String?
+  
+  // Project type and status
+  projectType       String?                 @default("webapp") // webapp, android, desktop, api
+  lifecycleStatus   ProjectLifecycleStatus  @default(idea)
+  publishStatus     String                  @default("draft") // draft, published, archived
+  
+  // Media
+  coverImage        String?
+  logoUrl           String?
+  gallery           String[]                @default([])
+  
+  // Legacy field for backward compatibility
+  technologies      String[]                @default([])
+  
+  // Enhanced tech stack
+  techStack         TechStackItem[]
+  
+  // Features tracking
+  features          FeatureItem[]
+  
+  // Modules and tasks
+  modules           ModuleItem[]
+  
+  // Roadmap
+  roadmap           RoadmapPhase[]
+  
+  // Flow diagram
+  flowDiagram       FlowDiagram?
+  
+  // API documentation
+  apiStructure      ApiEndpoint[]
+  
+  // Database design
+  databaseDesign    DatabaseCollection[]
+  
+  // Deployment info
+  deployment        DeploymentInfo?
+  
+  // Links
+  githubUrl         String?
+  demoUrl           String?
+  imageUrl          String?
+  
+  // Flags
+  featured          Boolean                 @default(false)
+  order             Int                     @default(0)
+  
+  // Progress tracking (computed fields stored for performance)
+  overallProgress   Int                     @default(0) // 0-100
+  
+  // Timestamps
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  @@index([lifecycleStatus])
+  @@index([publishStatus])
+  @@index([featured])
+}
+
+model Skill {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  category    String   // frontend, backend, tools, etc.
+  proficiency Int      // 1-100
+  icon        String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Experience {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  company     String
+  position    String
+  description String
+  startDate   DateTime
+  endDate     DateTime?
+  current     Boolean  @default(false)
+  location    String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Education {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  institution String
+  degree      String
+  field       String?
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  current     Boolean  @default(false)
+  gpa         String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Contact {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String
+  subject   String?
+  message   String
+  status    String   @default("unread") // unread, read, replied
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Settings {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  key               String   @unique
+  value             Json
+  description       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Analytics {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  event     String   // page_view, contact_form, project_click, etc.
+  data      Json?
+  userAgent String?
+  ip        String?
+  createdAt DateTime @default(now())
+}
