@@ -1350,7 +1350,8 @@ export default function AdminDashboard() {
                             >
                               <Edit size={16} />
                             </Link>
-                            <button onClick={() => handleDeleteProject(project.id)} className="p-2 hover:bg-zinc-800 rounded-lg text-red-400"><Trash2 size={16} /></button>
+                            {/* Delete button disabled */}
+                            {/* <button onClick={() => handleDeleteProject(project.id)} className="p-2 hover:bg-zinc-800 rounded-lg text-red-400"><Trash2 size={16} /></button> */}
                           </div>
                         </div>
                         <div className="flex items-start justify-between gap-3 mb-2 p-1">
