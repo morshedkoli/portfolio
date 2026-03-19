@@ -343,6 +343,7 @@ export default function AdminDashboard() {
     siteTitle: '',
     siteDescription: '',
     footerText: '',
+    copyrightText: '',
     maintenanceMode: false,
   })
 
@@ -386,6 +387,7 @@ export default function AdminDashboard() {
           siteTitle: s.siteTitle || '',
           siteDescription: s.siteDescription || '',
           footerText: s.footerText || '',
+          copyrightText: s.copyrightText || '',
           maintenanceMode: s.maintenanceMode || false,
         })
       }
@@ -1939,6 +1941,14 @@ export default function AdminDashboard() {
                       <input type="text" value={settingsForm.footerText} onChange={e => setSettingsForm({ ...settingsForm, footerText: e.target.value })} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="Custom footer text" />
                     ) : (
                       <p className="p-2 text-zinc-300">{settings.footerText || 'Not set'}</p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Copyright Text</label>
+                    {editingSettings ? (
+                      <input type="text" value={settingsForm.copyrightText} onChange={e => setSettingsForm({ ...settingsForm, copyrightText: e.target.value })} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="All rights reserved." />
+                    ) : (
+                      <p className="p-2 text-zinc-300">{settings.copyrightText || 'Not set'}</p>
                     )}
                   </div>
                   <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg border border-zinc-800">

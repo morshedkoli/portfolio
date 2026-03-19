@@ -18,23 +18,37 @@ interface Profile {
     }
 }
 
+interface Settings {
+    siteName?: string
+    footerText?: string
+    copyrightText?: string
+}
+
 const Footer = () => {
     const [profile, setProfile] = useState<Profile | null>(null)
+    const [settings, setSettings] = useState<Settings>({})
     const [showScrollTop, setShowScrollTop] = useState(false)
 
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchData = async () => {
             try {
-                const response = await fetch('/api/profile')
-                if (response.ok) {
-                    const data = await response.json()
-                    setProfile(data)
+                const [profileRes, settingsRes] = await Promise.all([
+                    fetch('/api/profile'),
+                    fetch('/api/settings')
+                ])
+                if (profileRes.ok) {
+                    const profileData = await profileRes.json()
+                    setProfile(profileData)
+                }
+                if (settingsRes.ok) {
+                    const settingsData = await settingsRes.json()
+                    setSettings(settingsData)
                 }
             } catch (error) {
-                console.error('Error fetching profile:', error)
+                console.error('Error fetching data:', error)
             }
         }
-        fetchProfile()
+        fetchData()
 
         const handleScroll = () => {
             setShowScrollTop(window.scrollY > 500)
@@ -104,11 +118,11 @@ const Footer = () => {
                                     <Sparkles size={16} className="text-white" />
                                 </div>
                                 <h3 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                                    {profile?.name || 'murshedkoli'}
+                                    {settings.siteName || profile?.name || 'Portfolio'}
                                 </h3>
                             </div>
                             <p className="text-gray-500 leading-relaxed mb-6 text-sm">
-                                {profile?.title || 'Full Stack Developer'}. Crafting digital experiences with modern technologies and creative solutions.
+                                {settings.footerText || `${profile?.title || 'Full Stack Developer'}. Crafting digital experiences with modern technologies and creative solutions.`}
                             </p>
                             {/* Social Links */}
                             {profile?.socialLinks && (
@@ -185,13 +199,13 @@ const Footer = () => {
                     {/* Bottom Bar */}
                     <div className="mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
                         <p className="text-sm flex items-center gap-1.5 text-gray-600">
-                            © {currentYear} {profile?.name || 'murshedkoli'}. 
+                            © {currentYear} {settings.siteName || profile?.name || 'Portfolio'}. 
                             <span className="inline-flex items-center gap-1">
                                 Built with <Heart size={12} className="text-red-500 animate-pulse" /> using Next.js
                             </span>
                         </p>
                         <p className="text-xs text-gray-700">
-                            All rights reserved.
+                            {settings.copyrightText || 'All rights reserved.'}
                         </p>
                     </div>
                 </div>
