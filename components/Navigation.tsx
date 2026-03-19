@@ -8,6 +8,23 @@ const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState('home')
+  const [siteName, setSiteName] = useState('')
+
+  useEffect(() => {
+    // Fetch site name from settings
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/settings')
+        if (res.ok) {
+          const settings = await res.json()
+          setSiteName(settings.siteName || '')
+        }
+      } catch (error) {
+        console.error('Failed to fetch settings:', error)
+      }
+    }
+    fetchSettings()
+  }, [])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -80,7 +97,7 @@ const Navigation = () => {
               </div>
             </div>
             <span className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
-              @murshedkoli
+              {siteName ? `@${siteName.toLowerCase().replace(/\s+/g, '')}` : ''}
             </span>
           </motion.div>
 
