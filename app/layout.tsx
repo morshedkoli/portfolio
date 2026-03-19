@@ -38,8 +38,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const [settings, profile] = await Promise.all([getSettings(), getProfile()])
   
   const siteName = settings.siteName || profile?.name || 'Portfolio'
-  const siteTitle = settings.siteTitle || `${siteName} | Full Stack Web Developer & Portfolio`
   const siteDescription = settings.siteDescription || profile?.description || 'Professional portfolio showcasing projects, skills, and experience.'
+  const siteTitle = settings.siteTitle || `${siteName} | ${siteDescription}`
   const siteKeywords = settings.siteKeywords || [
     siteName,
     'web developer',
