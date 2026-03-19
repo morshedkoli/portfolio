@@ -79,11 +79,6 @@ async function main() {
       description: 'Site theme configuration'
     },
     {
-      key: 'footerText',
-      value: 'Crafting digital experiences with modern technologies and creative solutions.',
-      description: 'Footer description text'
-    },
-    {
       key: 'copyrightText',
       value: 'All rights reserved.',
       description: 'Copyright text displayed in footer'

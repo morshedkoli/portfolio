@@ -342,7 +342,6 @@ export default function AdminDashboard() {
   const [settingsForm, setSettingsForm] = useState({
     siteTitle: '',
     siteDescription: '',
-    footerText: '',
     copyrightText: '',
     maintenanceMode: false,
   })
@@ -386,7 +385,6 @@ export default function AdminDashboard() {
         setSettingsForm({
           siteTitle: s.siteTitle || '',
           siteDescription: s.siteDescription || '',
-          footerText: s.footerText || '',
           copyrightText: s.copyrightText || '',
           maintenanceMode: s.maintenanceMode || false,
         })
@@ -1933,14 +1931,6 @@ export default function AdminDashboard() {
                       <textarea value={settingsForm.siteDescription} onChange={e => setSettingsForm({ ...settingsForm, siteDescription: e.target.value })} rows={3} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none resize-none" placeholder="Meta description for search engines" />
                     ) : (
                       <p className="p-2 text-zinc-300">{settings.siteDescription || 'Not set'}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Footer Text</label>
-                    {editingSettings ? (
-                      <input type="text" value={settingsForm.footerText} onChange={e => setSettingsForm({ ...settingsForm, footerText: e.target.value })} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="Custom footer text" />
-                    ) : (
-                      <p className="p-2 text-zinc-300">{settings.footerText || 'Not set'}</p>
                     )}
                   </div>
                   <div className="space-y-2">
