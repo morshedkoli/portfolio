@@ -45,7 +45,8 @@ import {
   Database,
   Rocket,
   ArrowLeft,
-  Save
+  Save,
+  FileDown
 } from 'lucide-react'
 
 interface ProjectEditorProps {
@@ -288,6 +289,28 @@ export function ProjectEditor({ project, isNew = false }: ProjectEditorProps) {
     }
   }
 
+  // Download AI markdown
+  const handleDownloadMarkdown = async () => {
+    if (!project?.id) return
+    try {
+      const response = await fetch(`/api/projects/${project.id}/markdown`)
+      if (!response.ok) throw new Error('Failed to generate markdown')
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${project.slug || 'project'}-ai-context.md`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+      toast.success('AI context markdown downloaded!')
+    } catch (error) {
+      toast.error('Failed to download markdown')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950">
       {/* Header */}
@@ -314,16 +337,27 @@ export function ProjectEditor({ project, isNew = false }: ProjectEditorProps) {
             </div>
 
             {!isNew && (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-400">
-                  Progress: {project?.overallProgress || 0}%
-                </span>
-                <div className="w-32 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${project?.overallProgress || 0}%` }}
-                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
-                  />
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleDownloadMarkdown}
+                  leftIcon={<FileDown size={16} />}
+                  title="Download AI context markdown"
+                >
+                  AI Context
+                </Button>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-400">
+                    Progress: {project?.overallProgress || 0}%
+                  </span>
+                  <div className="w-32 h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${project?.overallProgress || 0}%` }}
+                      className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
+                    />
+                  </div>
                 </div>
               </div>
             )}
