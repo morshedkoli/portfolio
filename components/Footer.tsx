@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { Github, Linkedin, Twitter, Facebook, Youtube, ExternalLink, Heart, ArrowUp, Sparkles } from 'lucide-react'
+import { Github, Linkedin, Twitter, Facebook, Youtube, ExternalLink, ArrowUp, Sparkles } from 'lucide-react'
 
 interface Profile {
     name: string
@@ -118,7 +118,7 @@ const Footer = () => {
                                     <Sparkles size={16} className="text-white" />
                                 </div>
                                 <h3 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                                    {settings.siteName || profile?.name || 'Portfolio'}
+                                    {profile?.name || 'Portfolio'}
                                 </h3>
                             </div>
                             <p className="text-gray-500 leading-relaxed mb-6 text-sm">
@@ -198,14 +198,8 @@ const Footer = () => {
 
                     {/* Bottom Bar */}
                     <div className="mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
-                        <p className="text-sm flex items-center gap-1.5 text-gray-600">
-                            © {currentYear} {settings.siteName || profile?.name || 'Portfolio'}. 
-                            <span className="inline-flex items-center gap-1">
-                                Built with <Heart size={12} className="text-red-500 animate-pulse" /> using Next.js
-                            </span>
-                        </p>
-                        <p className="text-xs text-gray-700">
-                            {settings.copyrightText || 'All rights reserved.'}
+                        <p className="text-sm text-gray-600">
+                            {settings.copyrightText || `© ${currentYear} ${profile?.name || 'Portfolio'}. All rights reserved.`}
                         </p>
                     </div>
                 </div>
