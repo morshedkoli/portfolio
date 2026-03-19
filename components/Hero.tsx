@@ -339,15 +339,37 @@ const Hero = () => {
               <div className="relative w-64 h-64 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full overflow-hidden">
                 {/* Gradient border */}
                 <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-cyan-500 p-1">
-                  <div className="w-full h-full rounded-full bg-slate-950 p-1">
-                    <motion.img
-                      src={profile?.heroImage || "/image.png"}
-                      alt="Developer"
-                      className="w-full h-full object-cover rounded-full"
-                      initial={{ scale: 1.1, filter: 'blur(10px)' }}
-                      animate={{ scale: 1, filter: 'blur(0px)' }}
-                      transition={{ duration: 0.8, delay: 0.6 }}
-                    />
+                  <div className="w-full h-full rounded-full bg-slate-950 p-1 overflow-hidden">
+                    {profile?.heroImage ? (
+                      <motion.img
+                        src={profile.heroImage}
+                        alt="Developer"
+                        className="w-full h-full object-cover rounded-full"
+                        initial={{ scale: 1.1, filter: 'blur(10px)' }}
+                        animate={{ scale: 1, filter: 'blur(0px)' }}
+                        transition={{ duration: 0.8, delay: 0.6 }}
+                      />
+                    ) : (
+                      <motion.div
+                        className="w-full h-full rounded-full bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 flex items-center justify-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.6, delay: 0.4 }}
+                      >
+                        {/* Placeholder Avatar */}
+                        <div className="relative">
+                          <svg 
+                            className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 text-slate-700" 
+                            fill="currentColor" 
+                            viewBox="0 0 24 24"
+                          >
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                          </svg>
+                          {/* Subtle animated glow */}
+                          <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/10 via-transparent to-purple-500/10 rounded-full animate-pulse" />
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
                 </div>
                 
