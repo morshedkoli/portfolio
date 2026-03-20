@@ -128,7 +128,7 @@ export function FeaturesTab({ features, onChange, onSave, isLoading }: FeaturesT
                   value={feature}
                   className="group"
                 >
-                  <Card className="!p-4 cursor-grab active:cursor-grabbing hover:!border-zinc-700 transition-colors">
+                  <Card className="!p-4 cursor-grab active:cursor-grabbing hover:!border-white/20 transition-colors">
                     <div className="flex items-start gap-3">
                       <div className="mt-1 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
                         <GripVertical size={18} />
@@ -181,7 +181,7 @@ export function FeaturesTab({ features, onChange, onSave, isLoading }: FeaturesT
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => setEditingId(feature.id)}
-                            className="p-2 text-gray-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+                            className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                           >
                             <Edit2 size={16} />
                           </button>

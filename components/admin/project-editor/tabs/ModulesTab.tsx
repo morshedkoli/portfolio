@@ -212,7 +212,7 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
         <button
           onClick={() => setViewMode('list')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-gray-400 hover:text-white'
+            viewMode === 'list' ? 'bg-blue-600 text-white' : 'bg-white/10 text-gray-300 hover:text-white'
           }`}
         >
           List View
@@ -220,7 +220,7 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
         <button
           onClick={() => setViewMode('kanban')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-            viewMode === 'kanban' ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-gray-400 hover:text-white'
+            viewMode === 'kanban' ? 'bg-blue-600 text-white' : 'bg-white/10 text-gray-300 hover:text-white'
           }`}
         >
           Kanban Board
@@ -267,7 +267,7 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
               <Card key={module.id} className="!p-0 overflow-hidden">
                 {/* Module Header */}
                 <div
-                  className="flex items-center gap-3 p-4 cursor-pointer hover:bg-zinc-800/50 transition-colors"
+                  className="flex items-center gap-3 p-4 cursor-pointer hover:bg-white/10/50 transition-colors"
                   onClick={() => toggleModule(module.id)}
                 >
                   <button className="text-gray-400">
@@ -297,13 +297,13 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
                     />
                     <button
                       onClick={() => openTaskModal(module.id)}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-zinc-700 rounded-lg transition-colors"
+                      className="p-2 text-gray-300 hover:text-white hover:bg-white/20 rounded-lg transition-colors"
                     >
                       <Plus size={18} />
                     </button>
                     <button
                       onClick={() => deleteModule(module.id)}
-                      className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      className="p-2 text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -318,16 +318,16 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.2 }}
-                      className="border-t border-zinc-800"
+                      className="border-t border-white/10"
                     >
                       {module.tasks.length === 0 ? (
-                        <div className="p-6 text-center text-gray-500">
+                        <div className="p-6 text-center text-gray-400">
                           No tasks yet. Click + to add tasks.
                         </div>
                       ) : (
-                        <div className="divide-y divide-zinc-800">
+                        <div className="divide-y divide-white/10">
                           {module.tasks.map((task) => (
-                            <div key={task.id} className="flex items-center gap-3 p-4 hover:bg-zinc-800/30">
+                            <div key={task.id} className="flex items-center gap-3 p-4 hover:bg-white/10/30">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <span className="text-white">{task.title}</span>
@@ -341,13 +341,13 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
                                   </Badge>
                                 </div>
                                 {task.description && (
-                                  <p className="text-sm text-gray-500 mt-1 truncate">{task.description}</p>
+                                  <p className="text-sm text-gray-400 mt-1 truncate">{task.description}</p>
                                 )}
                               </div>
 
                               <div className="flex items-center gap-2">
                                 {task.assignedTo && (
-                                  <span className="text-xs text-gray-400 flex items-center gap-1">
+                                  <span className="text-xs text-gray-300 flex items-center gap-1">
                                     <User size={12} />
                                     {task.assignedTo}
                                   </span>
@@ -360,13 +360,13 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
                                 />
                                 <button
                                   onClick={() => openTaskModal(module.id, task)}
-                                  className="p-1.5 text-gray-400 hover:text-white hover:bg-zinc-700 rounded transition-colors"
+                                  className="p-1.5 text-gray-300 hover:text-white hover:bg-white/20 rounded transition-colors"
                                 >
                                   <Edit2 size={14} />
                                 </button>
                                 <button
                                   onClick={() => deleteTask(module.id, task.id)}
-                                  className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                                  className="p-1.5 text-gray-300 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
                                 >
                                   <Trash2 size={14} />
                                 </button>
@@ -395,19 +395,19 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
 
               return (
                 <div key={column.id} className="w-72 flex-shrink-0">
-                  <div className={`p-3 rounded-t-lg bg-zinc-900 border-b-2 ${column.color}`}>
+                  <div className={`p-3 rounded-t-lg bg-white/5 border-b-2 ${column.color}`}>
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-white">{column.label}</span>
                       <Badge variant="default">{columnTasks.length}</Badge>
                     </div>
                   </div>
 
-                  <div className="bg-zinc-900/50 rounded-b-lg p-2 min-h-[300px] space-y-2">
+                  <div className="bg-white/5/50 rounded-b-lg p-2 min-h-[300px] space-y-2">
                     {columnTasks.map((task) => (
                       <motion.div
                         key={task.id}
                         layout
-                        className="p-3 bg-zinc-800 rounded-lg border border-zinc-700 hover:border-zinc-600 cursor-pointer"
+                        className="p-3 bg-white/10 rounded-lg border border-white/20 hover:border-white/30 cursor-pointer"
                         onClick={() => openTaskModal(task.moduleId, task)}
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -421,12 +421,12 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
                           </Badge>
                         </div>
                         {task.description && (
-                          <p className="text-xs text-gray-500 mt-1 line-clamp-2">{task.description}</p>
+                          <p className="text-xs text-gray-400 mt-1 line-clamp-2">{task.description}</p>
                         )}
-                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-zinc-700">
-                          <span className="text-xs text-gray-500">{task.moduleName}</span>
+                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/20">
+                          <span className="text-xs text-gray-400">{task.moduleName}</span>
                           {task.assignedTo && (
-                            <span className="text-xs text-gray-400">{task.assignedTo}</span>
+                            <span className="text-xs text-gray-300">{task.assignedTo}</span>
                           )}
                         </div>
                       </motion.div>
@@ -503,7 +503,7 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
             <Button variant="ghost" onClick={() => setShowTaskModal(false)}>
               Cancel
             </Button>

@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Input, Textarea, Select, Button, Card } from '@/components/ui/FormElements'
 import { Badge, StatusBadge } from '@/components/ui/Badge'
 import { ProgressBar, CircularProgress } from '@/components/ui/Progress'
+import { ImageUpload } from '@/components/ui/ImageUpload'
 import { getLifecycleStatusInfo, getFeatureStats, getTaskStats, formatDate } from '@/lib/utils/project-helpers'
 import { ProjectLifecycleStatusType } from '@/lib/validations/project'
 import { 
@@ -20,7 +21,6 @@ import {
   Smartphone,
   Link as LinkIcon
 } from 'lucide-react'
-import Image from 'next/image'
 
 interface OverviewTabProps {
   project: any
@@ -226,7 +226,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
                   type="checkbox"
                   checked={formData.featured}
                   onChange={(e) => handleChange('featured', e.target.checked)}
-                  className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                  className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
                 />
                 <span className="text-gray-300">Featured Project</span>
               </label>
@@ -237,46 +237,19 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
         {/* Media */}
         <Card>
           <h3 className="text-lg font-semibold text-white mb-4">Media</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Input
-                label="Cover Image URL"
-                value={formData.coverImage}
-                onChange={(e) => handleChange('coverImage', e.target.value)}
-                placeholder="https://..."
-              />
-              {formData.coverImage && (
-                <div className="mt-2 relative w-full h-32 rounded-lg overflow-hidden bg-zinc-800">
-                  <Image
-                    src={formData.coverImage}
-                    alt="Cover"
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-              )}
-            </div>
-            <div>
-              <Input
-                label="Logo URL"
-                value={formData.logoUrl}
-                onChange={(e) => handleChange('logoUrl', e.target.value)}
-                placeholder="https://..."
-              />
-              {formData.logoUrl && (
-                <div className="mt-2 w-16 h-16 rounded-lg overflow-hidden bg-zinc-800">
-                  <Image
-                    src={formData.logoUrl}
-                    alt="Logo"
-                    width={64}
-                    height={64}
-                    className="object-cover"
-                    unoptimized
-                  />
-                </div>
-              )}
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ImageUpload
+              label="Cover Image"
+              value={formData.coverImage}
+              onChange={(url) => handleChange('coverImage', url)}
+              previewSize="large"
+            />
+            <ImageUpload
+              label="Logo"
+              value={formData.logoUrl}
+              onChange={(url) => handleChange('logoUrl', url)}
+              previewSize="medium"
+            />
           </div>
         </Card>
 
@@ -292,7 +265,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
                     type="checkbox"
                     checked={formData.githubUrlEnabled}
                     onChange={(e) => handleChange('githubUrlEnabled', e.target.checked)}
-                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
                   />
                   <label className="text-sm text-gray-300">GitHub Repository</label>
                 </div>
@@ -309,7 +282,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
                     type="checkbox"
                     checked={formData.demoUrlEnabled}
                     onChange={(e) => handleChange('demoUrlEnabled', e.target.checked)}
-                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
                   />
                   <label className="text-sm text-gray-300">Live Demo URL</label>
                 </div>
@@ -323,7 +296,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
             </div>
 
             {/* Client & Admin Project Links */}
-            <div className="border-t border-zinc-700 pt-4 mt-4">
+            <div className="border-t border-white/10 pt-4 mt-4">
               <h4 className="text-sm font-medium text-gray-400 mb-3">Project Access Links</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="relative">
@@ -332,7 +305,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
                       type="checkbox"
                       checked={formData.clientProjectUrlEnabled}
                       onChange={(e) => handleChange('clientProjectUrlEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
                     />
                     <label className="text-sm text-gray-300">Client Project Link</label>
                   </div>
@@ -349,7 +322,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
                       type="checkbox"
                       checked={formData.adminProjectUrlEnabled}
                       onChange={(e) => handleChange('adminProjectUrlEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
                     />
                     <label className="text-sm text-gray-300">Admin Project Link</label>
                   </div>
@@ -364,7 +337,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
             </div>
 
             {/* Live Links */}
-            <div className="border-t border-zinc-700 pt-4">
+            <div className="border-t border-white/10 pt-4">
               <h4 className="text-sm font-medium text-gray-400 mb-3">Live Links</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="relative">
@@ -373,7 +346,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
                       type="checkbox"
                       checked={formData.clientLiveUrlEnabled}
                       onChange={(e) => handleChange('clientLiveUrlEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
                     />
                     <label className="text-sm text-gray-300">Client Live Link</label>
                   </div>
@@ -390,7 +363,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
                       type="checkbox"
                       checked={formData.adminLiveUrlEnabled}
                       onChange={(e) => handleChange('adminLiveUrlEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
                     />
                     <label className="text-sm text-gray-300">Admin Live Link</label>
                   </div>
@@ -405,7 +378,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
             </div>
 
             {/* Android Download */}
-            <div className="border-t border-zinc-700 pt-4">
+            <div className="border-t border-white/10 pt-4">
               <h4 className="text-sm font-medium text-gray-400 mb-3">Mobile App</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="relative">
@@ -414,7 +387,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
                       type="checkbox"
                       checked={formData.androidDownloadUrlEnabled}
                       onChange={(e) => handleChange('androidDownloadUrlEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
                     />
                     <label className="text-sm text-gray-300">Android App Download Link</label>
                   </div>
@@ -432,7 +405,7 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
 
         {/* Timestamps */}
         {project?.id && (
-          <Card className="!bg-zinc-900/30">
+          <Card className="!bg-white/5">
             <div className="flex items-center gap-6 text-sm text-gray-400">
               <div className="flex items-center gap-2">
                 <Calendar size={14} />

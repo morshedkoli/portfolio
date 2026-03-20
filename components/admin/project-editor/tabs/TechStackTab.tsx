@@ -113,13 +113,13 @@ export function TechStackTab({ techStack, onChange, onSave, isLoading }: TechSta
 
         {/* Quick Add Suggestions */}
         <div className="mt-4">
-          <p className="text-sm text-gray-400 mb-2">Quick add:</p>
+          <p className="text-sm text-gray-300 mb-2">Quick add:</p>
           <div className="flex flex-wrap gap-2">
             {getSuggestions().slice(0, 8).map((tech) => (
               <button
                 key={tech}
                 onClick={() => addTech(tech, newTech.category)}
-                className="px-3 py-1.5 text-sm bg-zinc-800 hover:bg-zinc-700 text-gray-300 hover:text-white rounded-lg border border-zinc-700 hover:border-zinc-600 transition-colors"
+                className="px-3 py-1.5 text-sm bg-white/10 hover:bg-white/15 text-gray-200 hover:text-white rounded-lg border border-white/20 hover:border-white/30 transition-colors"
               >
                 + {tech}
               </button>
@@ -135,7 +135,7 @@ export function TechStackTab({ techStack, onChange, onSave, isLoading }: TechSta
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
             selectedCategory === 'all' 
               ? 'bg-blue-600 text-white' 
-              : 'bg-zinc-800 text-gray-400 hover:text-white'
+              : 'bg-white/10 text-gray-300 hover:text-white'
           }`}
         >
           All ({techStack.length})
@@ -151,7 +151,7 @@ export function TechStackTab({ techStack, onChange, onSave, isLoading }: TechSta
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 selectedCategory === category 
                   ? 'bg-blue-600 text-white' 
-                  : 'bg-zinc-800 text-gray-400 hover:text-white'
+                  : 'bg-white/10 text-gray-300 hover:text-white'
               }`}
             >
               {config.icon}

@@ -12,6 +12,7 @@ interface Skill {
   proficiency: number
   icon?: string
   order: number
+  isEnabled?: boolean
 }
 
 const Skills = () => {
@@ -40,7 +41,9 @@ const Skills = () => {
         }
         
         const data = await response.json()
-        setSkills(Array.isArray(data) ? data : [])
+        // Filter out disabled skills as a safety measure
+        const enabledSkills = Array.isArray(data) ? data.filter((skill: Skill) => skill.isEnabled !== false) : []
+        setSkills(enabledSkills)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load skills')
         console.error('Error fetching skills:', err)

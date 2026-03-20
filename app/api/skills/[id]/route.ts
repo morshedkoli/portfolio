@@ -16,7 +16,8 @@ export async function PUT(
         category: data.category,
         proficiency: data.proficiency || 50,
         icon: data.icon,
-        order: data.order || 0
+        order: data.order || 0,
+        isEnabled: data.isEnabled !== undefined ? data.isEnabled : true
       }
     })
     

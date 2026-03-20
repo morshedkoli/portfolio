@@ -272,6 +272,7 @@ model Skill {
   proficiency Int      // 1-100
   icon        String?
   order       Int      @default(0)
+  isEnabled   Boolean  @default(true)  // Enable/disable skill visibility
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

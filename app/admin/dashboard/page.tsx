@@ -35,7 +35,9 @@ import {
   GraduationCap,
   Mail,
   Pencil,
-  Award
+  Award,
+  ExternalLink,
+  Calendar
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -89,6 +91,7 @@ interface Skill {
   proficiency: number
   icon?: string
   order: number
+  isEnabled?: boolean
 }
 
 interface Experience {
@@ -116,16 +119,6 @@ interface Education {
   order: number
 }
 
-interface Certification {
-  id?: string
-  name: string
-  issuer: string
-  date: string
-  url?: string
-  description?: string
-  order: number
-}
-
 interface ContactMessage {
   id: string
   name: string
@@ -134,6 +127,16 @@ interface ContactMessage {
   message: string
   status: 'unread' | 'read' | 'replied'
   createdAt: string
+}
+
+interface Certification {
+  id?: string
+  name: string
+  issuer: string
+  date: string
+  url?: string
+  description?: string
+  order: number
 }
 
 // --- Components ---
@@ -166,14 +169,14 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout, mobileMenuOpen, setMob
       </AnimatePresence>
 
       <motion.aside
-        className={`fixed left-0 top-0 h-full w-64 z-50 flex flex-col transition-transform duration-300 bg-zinc-950 border-r border-zinc-800 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        className={`fixed left-0 top-0 h-full w-64 z-50 flex flex-col transition-transform duration-300 bg-[#0a0a1a]/90 backdrop-blur border-r border-white/10 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
-        <div className="p-6 border-b border-zinc-800">
+        <div className="p-6 border-b border-white/10">
           <div className="flex items-center gap-2 font-bold text-xl text-white">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
               A
             </div>
-            <span>Admin<span className="text-zinc-500">Panel</span></span>
+            <span>Admin<span className="text-gray-400">Panel</span></span>
           </div>
         </div>
 
@@ -190,7 +193,7 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout, mobileMenuOpen, setMob
                 }}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
                   ? 'bg-blue-600/10 text-blue-500 border border-blue-600/20'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                  : 'text-gray-300 hover:text-white hover:bg-white/5'
                   }`}
               >
                 <Icon size={18} />
@@ -204,7 +207,7 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout, mobileMenuOpen, setMob
           })}
         </nav>
 
-        <div className="p-4 border-t border-zinc-800">
+        <div className="p-4 border-t border-white/10">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
@@ -223,15 +226,15 @@ const StatCard = ({ title, value, icon: Icon, color, delay }: any) => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
-    className="bg-zinc-900 border border-zinc-800 p-4 sm:p-6 rounded-xl hover:border-zinc-700 transition-colors group"
+    className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-xl hover:border-white/20 transition-colors group"
   >
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0 flex-1">
-        <p className="text-zinc-500 text-xs sm:text-sm font-medium mb-1 truncate">{title}</p>
-        <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:scale-105 transition-transform origin-left truncate">{value}</h3>
+    <div className="flex items-start justify-between">
+      <div>
+        <p className="text-gray-400 text-sm font-medium mb-1">{title}</p>
+        <h3 className="text-2xl font-bold text-white group-hover:scale-105 transition-transform origin-left">{value}</h3>
       </div>
-      <div className={`p-2 sm:p-3 rounded-lg ${color} bg-opacity-10 shrink-0`}>
-        <Icon size={20} className={`${color.replace('bg-', 'text-')} sm:size-6`} />
+      <div className={`p-3 rounded-lg ${color} bg-opacity-10`}>
+        <Icon size={24} className={color.replace('bg-', 'text-')} />
       </div>
     </div>
   </motion.div>
@@ -536,52 +539,6 @@ export default function AdminDashboard() {
     }
   }
 
-  const handleSaveCertification = async () => {
-    if (!editingCertification) return
-    setLoading(true)
-    try {
-      const url = editingCertification.id ? `/api/certifications` : '/api/certifications'
-      const method = editingCertification.id ? 'PUT' : 'POST'
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingCertification),
-      })
-      if (response.ok) {
-        setEditingCertification(null)
-        await fetchData()
-        toast.success('Certification saved.')
-      } else {
-        toast.error('Could not save certification.')
-      }
-    } catch (error) {
-      console.error('Error saving certification:', error)
-      toast.error('Could not save certification.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const deleteCertification = async (id: string) => {
-    const confirmed = await confirmWithToast('Delete this certification?')
-    if (!confirmed) return
-    setLoading(true)
-    try {
-      const response = await fetch(`/api/certifications?id=${id}`, { method: 'DELETE' })
-      if (response.ok) {
-        await fetchData()
-        toast.success('Certification deleted.')
-      } else {
-        toast.error('Could not delete certification.')
-      }
-    } catch (error) {
-      console.error('Error deleting certification:', error)
-      toast.error('Could not delete certification.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleSaveProject = async (project: Project) => {
     setLoading(true)
     try {
@@ -781,12 +738,58 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleSaveCertification = async () => {
+    if (!editingCertification) return
+    setLoading(true)
+    try {
+      const url = editingCertification.id ? `/api/certifications` : '/api/certifications'
+      const method = editingCertification.id ? 'PUT' : 'POST'
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingCertification),
+      })
+      if (response.ok) {
+        setEditingCertification(null)
+        await fetchData()
+        toast.success('Certification saved.')
+      } else {
+        toast.error('Could not save certification.')
+      }
+    } catch (error) {
+      console.error('Error saving certification:', error)
+      toast.error('Could not save certification.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteCertification = async (id: string) => {
+    const confirmed = await confirmWithToast('Delete this certification?')
+    if (!confirmed) return
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/certifications?id=${id}`, { method: 'DELETE' })
+      if (response.ok) {
+        await fetchData()
+        toast.success('Certification deleted.')
+      } else {
+        toast.error('Could not delete certification.')
+      }
+    } catch (error) {
+      console.error('Error deleting certification:', error)
+      toast.error('Could not delete certification.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const unreadCount = messages.filter(m => m.status === 'unread').length
 
-  if (!isAuthenticated) return <div className="min-h-screen bg-black" />
+  if (!isAuthenticated) return <div className="min-h-screen bg-[#0a0a1a]" />
 
   return (
-    <div className="admin-dashboard min-h-screen font-sans bg-black text-zinc-100">
+    <div className="admin-dashboard min-h-screen font-sans bg-[#0a0a1a] text-gray-200">
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -798,11 +801,11 @@ export default function AdminDashboard() {
 
       {/* Main Content Area */}
       <main className="md:ml-64 min-h-screen transition-all duration-300">
-        <header className="sticky top-0 z-30 backdrop-blur-md px-4 md:px-6 py-3 md:py-4 flex items-center justify-between bg-black/80 border-b border-zinc-800">
+        <header className="sticky top-0 z-30 backdrop-blur-md px-6 py-4 flex items-center justify-between bg-[#0a0a1a]/90 border-b border-white/10">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-2 hover:bg-zinc-800 rounded-lg"
+              className="md:hidden p-2 hover:bg-white/10 rounded-lg"
             >
               <Menu size={20} />
             </button>
@@ -822,48 +825,58 @@ export default function AdminDashboard() {
             <button
               onClick={() => setEditingSkill({
                 name: '', category: 'frontend',
-                proficiency: 50, icon: '', order: skills.length
+                proficiency: 50, icon: '', order: skills.length, isEnabled: true
               })}
               className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
             >
               <Plus size={16} /> New Skill
             </button>
           )}
+          {activeTab === 'certifications' && !editingCertification && (
+            <button
+              onClick={() => setEditingCertification({
+                name: '', issuer: '', date: new Date().toISOString().split('T')[0], order: certifications.length
+              })}
+              className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
+            >
+              <Plus size={16} /> New Certification
+            </button>
+          )}
         </header>
 
-        <div className="p-4 md:p-6 max-w-7xl mx-auto">
+        <div className="p-6 max-w-7xl mx-auto">
 
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard title="Total Projects" value={projects.length} icon={FileText} color="bg-blue-500" delay={0} />
                 <StatCard title="Featured" value={projects.filter(p => p.featured).length} icon={Eye} color="bg-green-500" delay={0.05} />
                 <StatCard title="Skills" value={skills.length} icon={Zap} color="bg-orange-500" delay={0.1} />
+                <StatCard title="Certifications" value={certifications.length} icon={Award} color="bg-yellow-500" delay={0.12} />
                 <StatCard title="Experience" value={experiences.length} icon={Briefcase} color="bg-cyan-500" delay={0.15} />
                 <StatCard title="Education" value={educations.length} icon={GraduationCap} color="bg-indigo-500" delay={0.2} />
-                <StatCard title="Certifications" value={certifications.length} icon={Award} color="bg-yellow-500" delay={0.25} />
-                <StatCard title="Unread Messages" value={unreadCount} icon={Mail} color="bg-red-500" delay={0.3} />
+                <StatCard title="Unread Messages" value={unreadCount} icon={Mail} color="bg-red-500" delay={0.25} />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
                 {/* Recent Messages */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-semibold text-zinc-300">Recent Messages</h3>
+                    <h3 className="font-semibold text-gray-200">Recent Messages</h3>
                     <button onClick={() => setActiveTab('messages')} className="text-xs text-blue-400 hover:text-blue-300">View All</button>
                   </div>
                   <div className="space-y-3">
-                    {messages.length === 0 && <p className="text-zinc-600 text-sm">No messages yet.</p>}
+                    {messages.length === 0 && <p className="text-gray-400 text-sm">No messages yet.</p>}
                     {messages.slice(0, 3).map((msg) => (
-                      <div key={msg.id} className={`p-3 rounded-lg border ${msg.status === 'unread' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-zinc-950 border-zinc-800'}`}>
+                      <div key={msg.id} className={`p-3 rounded-lg border ${msg.status === 'unread' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-black/40 border-white/10'}`}>
                         <div className="flex justify-between items-center mb-1 gap-2">
-                          <span className="text-sm font-medium text-zinc-200 truncate">{msg.name}</span>
-                          <span className="text-[11px] text-zinc-500 shrink-0">{new Date(msg.createdAt).toLocaleDateString()}</span>
+                          <span className="text-sm font-medium text-gray-200 truncate">{msg.name}</span>
+                          <span className="text-[11px] text-gray-400 shrink-0">{new Date(msg.createdAt).toLocaleDateString()}</span>
                         </div>
                         <div className="flex justify-between items-center gap-2">
-                          <p className="text-xs text-zinc-500 truncate">{msg.subject || 'No subject'}</p>
-                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${msg.status === 'unread' ? 'bg-blue-500/20 text-blue-400' : msg.status === 'replied' ? 'bg-green-500/20 text-green-400' : 'bg-zinc-700 text-zinc-400'}`}>{msg.status}</span>
+                          <p className="text-xs text-gray-400 truncate">{msg.subject || 'No subject'}</p>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${msg.status === 'unread' ? 'bg-blue-500/20 text-blue-400' : msg.status === 'replied' ? 'bg-green-500/20 text-green-400' : 'bg-white/10 text-gray-400'}`}>{msg.status}</span>
                         </div>
                       </div>
                     ))}
@@ -871,8 +884,8 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-                  <h3 className="font-semibold mb-4 text-zinc-300">Quick Actions</h3>
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6">
+                  <h3 className="font-semibold mb-4 text-gray-200">Quick Actions</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {[
                       { tab: 'projects', icon: FileText, label: 'Projects', color: 'text-blue-500' },
@@ -883,7 +896,7 @@ export default function AdminDashboard() {
                       { tab: 'certifications', icon: Award, label: 'Certifications', color: 'text-yellow-500' },
                       { tab: 'messages', icon: Mail, label: 'Messages', color: 'text-red-500' },
                     ].map(({ tab, icon: Icon, label, color }) => (
-                      <button key={tab} onClick={() => setActiveTab(tab)} className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors text-left flex flex-col gap-2">
+                      <button key={tab} onClick={() => setActiveTab(tab)} className="p-3 bg-black/40 border border-white/10 rounded-lg hover:border-white/20 transition-colors text-left flex flex-col gap-2">
                         <Icon className={color} size={20} />
                         <span className="text-sm font-medium">{label}</span>
                       </button>
@@ -897,16 +910,16 @@ export default function AdminDashboard() {
           {/* PROFILE TAB */}
           {activeTab === 'profile' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900">
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden">
+                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                   <h3 className="font-semibold text-lg">Personal Information</h3>
                   {!editingProfile ? (
-                    <button onClick={() => setEditingProfile(true)} className="flex items-center gap-2 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm transition-colors border border-zinc-700">
+                    <button onClick={() => setEditingProfile(true)} className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors border border-white/20">
                       <Edit size={14} /> Edit
                     </button>
                   ) : (
                     <div className="flex gap-2">
-                      <button onClick={() => setEditingProfile(false)} className="px-3 py-1.5 text-zinc-400 hover:text-white text-sm">Cancel</button>
+                      <button onClick={() => setEditingProfile(false)} className="px-3 py-1.5 text-gray-400 hover:text-white text-sm">Cancel</button>
                       <button onClick={handleSaveProfile} disabled={loading} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2">
                         <Save size={14} /> Save Changes
                       </button>
@@ -918,55 +931,55 @@ export default function AdminDashboard() {
                   <div className="p-6 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Full Name</label>
+                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Full Name</label>
                         {editingProfile ? (
-                          <input type="text" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" />
+                          <input type="text" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" />
                         ) : (
-                          <p className="p-2 text-zinc-300">{profile.name}</p>
+                          <p className="p-2 text-gray-300">{profile.name}</p>
                         )}
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Title</label>
+                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Title</label>
                         {editingProfile ? (
-                          <input type="text" value={profile.title} onChange={e => setProfile({ ...profile, title: e.target.value })} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" />
+                          <input type="text" value={profile.title} onChange={e => setProfile({ ...profile, title: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" />
                         ) : (
-                          <p className="p-2 text-zinc-300">{profile.title}</p>
+                          <p className="p-2 text-gray-300">{profile.title}</p>
                         )}
                       </div>
                       <div className="md:col-span-2 space-y-2">
-                        <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Bio</label>
+                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Bio</label>
                         {editingProfile ? (
-                          <textarea rows={4} value={profile.description} onChange={e => setProfile({ ...profile, description: e.target.value })} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none resize-none" />
+                          <textarea rows={4} value={profile.description} onChange={e => setProfile({ ...profile, description: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none resize-none" />
                         ) : (
-                          <p className="p-2 text-zinc-300 leading-relaxed">{profile.description}</p>
+                          <p className="p-2 text-gray-300 leading-relaxed">{profile.description}</p>
                         )}
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Email</label>
+                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Email</label>
                         {editingProfile ? (
-                          <input type="email" value={profile.email} onChange={e => setProfile({ ...profile, email: e.target.value })} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" />
+                          <input type="email" value={profile.email} onChange={e => setProfile({ ...profile, email: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" />
                         ) : (
-                          <p className="p-2 text-zinc-300">{profile.email}</p>
+                          <p className="p-2 text-gray-300">{profile.email}</p>
                         )}
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Location</label>
+                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Location</label>
                         {editingProfile ? (
-                          <input type="text" value={profile.location || ''} onChange={e => setProfile({ ...profile, location: e.target.value })} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" />
+                          <input type="text" value={profile.location || ''} onChange={e => setProfile({ ...profile, location: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" />
                         ) : (
-                          <p className="p-2 text-zinc-300">{profile.location || 'Not set'}</p>
+                          <p className="p-2 text-gray-300">{profile.location || 'Not set'}</p>
                         )}
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Phone</label>
+                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Phone</label>
                         {editingProfile ? (
-                          <input type="text" value={profile.phone || ''} onChange={e => setProfile({ ...profile, phone: e.target.value })} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. +880 1XXX-XXXXXX" />
+                          <input type="text" value={profile.phone || ''} onChange={e => setProfile({ ...profile, phone: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="e.g. +880 1XXX-XXXXXX" />
                         ) : (
-                          <p className="p-2 text-zinc-300">{profile.phone || 'Not set'}</p>
+                          <p className="p-2 text-gray-300">{profile.phone || 'Not set'}</p>
                         )}
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Hero Image URL</label>
+                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Hero Image URL</label>
                         {editingProfile ? (
                           <div className="space-y-3">
                             <div className="flex gap-2">
@@ -974,10 +987,10 @@ export default function AdminDashboard() {
                                 type="text"
                                 value={profile.heroImage || ''}
                                 onChange={e => setProfile({ ...profile, heroImage: e.target.value })}
-                                className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none text-sm"
+className="flex-1 px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none text-sm"
                                 placeholder="/image.png"
                               />
-                              <label className="cursor-pointer px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm transition-colors border border-zinc-700 flex items-center gap-2">
+                              <label className="cursor-pointer px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors border border-white/20 flex items-center gap-2">
                                 {uploading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" /> : <Upload size={16} />}
                                 Upload
                                 <input
@@ -989,35 +1002,35 @@ export default function AdminDashboard() {
                                 />
                               </label>
                             </div>
-                            <p className="text-xs text-zinc-500">
+                            <p className="text-xs text-gray-400">
                               Upload an image directly or paste a URL.
                             </p>
                           </div>
                         ) : (
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded overflow-hidden bg-zinc-800 border border-zinc-700 shrink-0">
+                            <div className="w-10 h-10 rounded overflow-hidden bg-white/10 border border-white/20 shrink-0">
                               {profile.heroImage ? (
                                 <Image src={profile.heroImage} alt="Hero" className="w-full h-full object-cover" width={40} height={40} unoptimized />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-zinc-500 text-xs">N/A</div>
+                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">N/A</div>
                               )}
                             </div>
-                            <p className="p-2 text-zinc-300 truncate text-sm flex-1">{profile.heroImage || 'Default Image'}</p>
+                            <p className="p-2 text-gray-300 truncate text-sm flex-1">{profile.heroImage || 'Default Image'}</p>
                           </div>
                         )}
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Resume URL</label>
+                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Resume URL</label>
                         {editingProfile ? (
                           <div className="flex gap-2">
                             <input
                               type="text"
                               value={profile.resume || ''}
                               onChange={e => setProfile({ ...profile, resume: e.target.value })}
-                              className="flex-1 px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none text-sm"
+                              className="flex-1 px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none text-sm"
                               placeholder="/resume.pdf"
                             />
-                            <label className="cursor-pointer px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm transition-colors border border-zinc-700 flex items-center gap-2">
+                            <label className="cursor-pointer px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors border border-white/20 flex items-center gap-2">
                               {uploading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" /> : <Upload size={16} />}
                               Upload
                               <input
@@ -1048,9 +1061,9 @@ export default function AdminDashboard() {
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
-                            <p className="p-2 text-zinc-300 truncate flex-1">{profile.resume || 'Not set'}</p>
+                            <p className="p-2 text-gray-300 truncate flex-1">{profile.resume || 'Not set'}</p>
                             {profile.resume && (
-                              <a href={profile.resume} target="_blank" rel="noopener noreferrer" className="p-2 bg-zinc-800 rounded hover:bg-zinc-700 text-white">
+                              <a href={profile.resume} target="_blank" rel="noopener noreferrer" className="p-2 bg-white/10 rounded hover:bg-white/20 text-white">
                                 <Eye size={16} />
                               </a>
                             )}
@@ -1059,8 +1072,8 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <div className="pt-6 border-t border-zinc-800">
-                      <h4 className="font-semibold mb-4 flex items-center gap-2"><Globe size={16} className="text-zinc-500" /> Social Connections</h4>
+                    <div className="pt-6 border-t border-white/10">
+                      <h4 className="font-semibold mb-4 flex items-center gap-2"><Globe size={16} className="text-gray-400" /> Social Connections</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {[
                           { key: 'github', label: 'GitHub', icon: Github },
@@ -1071,10 +1084,10 @@ export default function AdminDashboard() {
                           const val = profile.socialLinks?.[key as keyof typeof profile.socialLinks] || ''
                           return (
                             <div key={key} className="space-y-1">
-                              <label className="text-xs text-zinc-500 ml-1">{label}</label>
+                              <label className="text-xs text-gray-400 ml-1">{label}</label>
                               {editingProfile ? (
                                 <div className="relative">
-                                  <Icon size={16} className="absolute left-3 top-3 text-zinc-600" />
+                                  <Icon size={16} className="absolute left-3 top-3 text-gray-500" />
                                   <input
                                     type="url"
                                     value={val}
@@ -1082,14 +1095,14 @@ export default function AdminDashboard() {
                                       ...profile,
                                       socialLinks: { ...profile.socialLinks, [key]: e.target.value }
                                     })}
-                                    className="w-full pl-10 pr-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none"
+                                    className="w-full pl-10 pr-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none"
                                     placeholder={`https://${key}.com/...`}
                                   />
                                 </div>
                               ) : (
-                                <div className="flex items-center gap-3 p-3 bg-zinc-950 border border-zinc-800 rounded-lg">
-                                  <Icon size={16} className="text-zinc-500" />
-                                  <span className="text-sm truncate text-zinc-300">{val || 'Not linked'}</span>
+                                <div className="flex items-center gap-3 p-3 bg-black/40 border border-white/10 rounded-lg">
+                                  <Icon size={16} className="text-gray-400" />
+                                  <span className="text-sm truncate text-gray-300">{val || 'Not linked'}</span>
                                 </div>
                               )}
                             </div>
@@ -1110,29 +1123,29 @@ export default function AdminDashboard() {
                 <motion.div
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-8 shadow-2xl relative"
+                  className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 mb-8 shadow-2xl relative"
                 >
-                  <button onClick={() => setEditingProject(null)} className="absolute top-4 right-4 text-zinc-500 hover:text-white">
+                  <button onClick={() => setEditingProject(null)} className="absolute top-4 right-4 text-gray-400 hover:text-white">
                     <X size={20} />
                   </button>
                   <h3 className="text-lg font-semibold mb-6">{editingProject.id ? 'Edit Project' : 'New Project'}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm text-zinc-400 mb-1">Project Title</label>
+                        <label className="block text-sm text-gray-300 mb-1">Project Title</label>
                         <input
                           value={editingProject.title}
                           onChange={e => setEditingProject({ ...editingProject, title: e.target.value })}
-                          className="w-full px-4 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none"
+                          className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none"
                           placeholder="My Awesome Project"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-zinc-400 mb-1">Description</label>
+                        <label className="block text-sm text-gray-300 mb-1">Description</label>
                         <textarea
                           value={editingProject.description}
                           onChange={e => setEditingProject({ ...editingProject, description: e.target.value })}
-                          className="w-full px-4 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none resize-none"
+                          className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none resize-none"
                           rows={4}
                           placeholder="What does this project do?"
                         />
@@ -1140,7 +1153,7 @@ export default function AdminDashboard() {
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm text-zinc-400 mb-1">Project Type</label>
+                        <label className="block text-sm text-gray-300 mb-1">Project Type</label>
                         <select
                           value={editingProject.projectType || 'webapp'}
                           onChange={(e) => {
@@ -1153,7 +1166,7 @@ export default function AdminDashboard() {
                             })
                             setSelectedTechnology(nextOptions[0])
                           }}
-                          className="w-full px-4 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none"
+                          className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none"
                         >
                           <option value="webapp">Web App</option>
                           <option value="android">Android</option>
@@ -1161,7 +1174,7 @@ export default function AdminDashboard() {
                       </div>
 
                       <div>
-                        <label className="block text-sm text-zinc-400 mb-1">Technologies</label>
+                        <label className="block text-sm text-gray-300 mb-1">Technologies</label>
                         {(() => {
                           const currentType = editingProject.projectType || 'webapp'
                           const typeTechnologies = technologyOptionsByType[currentType]
@@ -1177,7 +1190,7 @@ export default function AdminDashboard() {
                                     ? ''
                                     : (availableTechnologies.includes(selectedTechnology) ? selectedTechnology : availableTechnologies[0])}
                                   onChange={(e) => setSelectedTechnology(e.target.value)}
-                                  className="flex-1 px-4 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none"
+                                  className="flex-1 px-4 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none"
                                   disabled={availableTechnologies.length === 0}
                                 >
                                   {availableTechnologies.length === 0 ? (
@@ -1210,7 +1223,7 @@ export default function AdminDashboard() {
                               </div>
                               <div className="flex flex-wrap gap-2 min-h-[36px]">
                                 {editingProject.technologies.length === 0 && (
-                                  <span className="text-xs text-zinc-500">No technologies selected.</span>
+                                  <span className="text-xs text-gray-400">No technologies selected.</span>
                                 )}
                                 {editingProject.technologies.map((tech) => (
                                   <button
@@ -1223,7 +1236,7 @@ export default function AdminDashboard() {
                                         setSelectedTechnology(tech)
                                       }
                                     }}
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-300 hover:border-zinc-700 transition-colors"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-black/40 border border-white/10 rounded text-xs text-gray-300 hover:border-white/20 transition-colors"
                                     title="Remove technology"
                                   >
                                     {tech}
@@ -1237,18 +1250,18 @@ export default function AdminDashboard() {
                       </div>
 
                       <div>
-                        <label className="block text-sm text-zinc-400 mb-1">Project Icon / Logo (optional)</label>
+                        <label className="block text-sm text-gray-300 mb-1">Project Icon / Logo (optional)</label>
                         <div className="flex items-center gap-3">
-                          <div className="relative w-10 h-10 bg-zinc-950 border border-zinc-800 rounded-lg overflow-hidden flex-shrink-0">
+                          <div className="relative w-10 h-10 bg-black/40 border border-white/10 rounded-lg overflow-hidden flex-shrink-0">
                             {editingProject.logoUrl ? (
                               <Image src={editingProject.logoUrl} alt="Logo" className="w-full h-full object-cover" width={40} height={40} unoptimized />
                             ) : (
-                              <div className="flex items-center justify-center w-full h-full text-zinc-700 text-xs font-semibold">
+                              <div className="flex items-center justify-center w-full h-full text-gray-500 text-xs font-semibold">
                                 {editingProject.title?.charAt(0)?.toUpperCase() || 'L'}
                               </div>
                             )}
                           </div>
-                          <label className="cursor-pointer px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm transition-colors border border-zinc-700 flex items-center gap-2">
+                          <label className="cursor-pointer px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors border border-white/20 flex items-center gap-2">
                             {uploading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" /> : <Upload size={16} />}
                             Upload Logo
                             <input
@@ -1279,7 +1292,7 @@ export default function AdminDashboard() {
                           {editingProject.logoUrl && (
                             <button
                               onClick={() => setEditingProject({ ...editingProject, logoUrl: '' })}
-                              className="p-2 hover:bg-zinc-800 rounded-lg text-red-400"
+className="p-2 hover:bg-white/10 rounded-lg text-red-400"
                               title="Remove Logo"
                             >
                               <Trash2 size={16} />
@@ -1289,18 +1302,18 @@ export default function AdminDashboard() {
                       </div>
 
                       <div>
-                        <label className="block text-sm text-zinc-400 mb-1">Project Preview Image</label>
+                        <label className="block text-sm text-gray-300 mb-1">Project Preview Image</label>
                         <div className="flex items-center gap-3">
-                          <div className="relative w-16 h-10 bg-zinc-950 border border-zinc-800 rounded overflow-hidden flex-shrink-0">
+                          <div className="relative w-16 h-10 bg-black/40 border border-white/10 rounded overflow-hidden flex-shrink-0">
                             {editingProject.imageUrl ? (
                               <Image src={editingProject.imageUrl} alt="Preview" className="w-full h-full object-cover" width={64} height={40} unoptimized />
                             ) : (
-                              <div className="flex items-center justify-center w-full h-full text-zinc-700">
+                              <div className="flex items-center justify-center w-full h-full text-gray-500">
                                 <FileText size={16} />
                               </div>
                             )}
                           </div>
-                          <label className="cursor-pointer px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm transition-colors border border-zinc-700 flex items-center gap-2">
+                          <label className="cursor-pointer px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors border border-white/20 flex items-center gap-2">
                             {uploading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" /> : <Upload size={16} />}
                             Upload Image
                             <input
@@ -1331,7 +1344,7 @@ export default function AdminDashboard() {
                           {editingProject.imageUrl && (
                             <button
                               onClick={() => setEditingProject({ ...editingProject, imageUrl: '' })}
-                              className="p-2 hover:bg-zinc-800 rounded-lg text-red-400"
+                              className="p-2 hover:bg-white/10 rounded-lg text-red-400"
                               title="Remove Image"
                             >
                               <Trash2 size={16} />
@@ -1342,19 +1355,19 @@ export default function AdminDashboard() {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="block text-sm text-zinc-400 mb-1">GitHub URL</label>
+                          <label className="block text-sm text-gray-300 mb-1">GitHub URL</label>
                           <input
                             value={editingProject.githubUrl || ''}
                             onChange={e => setEditingProject({ ...editingProject, githubUrl: e.target.value })}
-                            className="w-full px-4 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none"
+                            className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none"
                           />
                         </div>
                         <div>
-                          <label className="block text-sm text-zinc-400 mb-1">Demo URL</label>
+                          <label className="block text-sm text-gray-300 mb-1">Demo URL</label>
                           <input
                             value={editingProject.demoUrl || ''}
                             onChange={e => setEditingProject({ ...editingProject, demoUrl: e.target.value })}
-                            className="w-full px-4 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none"
+                            className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-600 outline-none"
                           />
                         </div>
                       </div>
@@ -1364,14 +1377,14 @@ export default function AdminDashboard() {
                           id="featured"
                           checked={editingProject.featured}
                           onChange={e => setEditingProject({ ...editingProject, featured: e.target.checked })}
-                          className="w-4 h-4 rounded border-zinc-700 bg-zinc-900"
+                          className="w-4 h-4 rounded border-white/20 bg-black/40"
                         />
                         <label htmlFor="featured" className="text-sm cursor-pointer select-none">Feature this project on homepage</label>
                       </div>
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end gap-3">
-                    <button onClick={() => setEditingProject(null)} className="px-4 py-2 text-zinc-400 hover:text-white text-sm">Cancel</button>
+                    <button onClick={() => setEditingProject(null)} className="px-4 py-2 text-gray-400 hover:text-white text-sm">Cancel</button>
                     <button onClick={() => handleSaveProject(editingProject)} disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2">
                       {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white animate-spin rounded-full" /> : <Save size={16} />}
                       Save Project
@@ -1400,31 +1413,31 @@ export default function AdminDashboard() {
                     <motion.div
                       layout
                       key={project.id}
-                      className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden group hover:border-zinc-600 transition-colors flex flex-col"
+                      className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden group hover:border-white/20 transition-colors flex flex-col"
                     >
                       <div className="p-6 flex-1">
                         <div className="flex justify-between items-start mb-4">
-                          <div className={`p-2 rounded-lg ${project.featured ? 'bg-orange-500/10 text-orange-400' : 'bg-zinc-800 text-zinc-400'}`}>
+                          <div className={`p-2 rounded-lg ${project.featured ? 'bg-orange-500/10 text-orange-400' : 'bg-white/10 text-gray-400'}`}>
                             {project.featured ? <Zap size={20} /> : <Code size={20} />}
                           </div>
                           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <Link
                               href={`/admin/projects/${project.id}`}
-                              className="p-2 hover:bg-zinc-800 rounded-lg text-blue-400"
+className="p-2 hover:bg-white/10 rounded-lg text-blue-400"
                             >
                               <Edit size={16} />
                             </Link>
                             {/* Delete button disabled */}
-                            {/* <button onClick={() => handleDeleteProject(project.id)} className="p-2 hover:bg-zinc-800 rounded-lg text-red-400"><Trash2 size={16} /></button> */}
+                            {/* <button onClick={() => handleDeleteProject(project.id)} className="p-2 hover:bg-white/10 rounded-lg text-red-400"><Trash2 size={16} /></button> */}
                           </div>
                         </div>
                         <div className="flex items-start justify-between gap-3 mb-2 p-1">
                           <div className="flex items-center gap-2 min-w-0">
-                            <div className="w-7 h-7 rounded-md border border-zinc-700 overflow-hidden bg-zinc-950 flex items-center justify-center shrink-0">
+                            <div className="w-7 h-7 rounded-md border border-white/20 overflow-hidden bg-black/40 flex items-center justify-center shrink-0">
                               {project.logoUrl ? (
                                 <Image src={project.logoUrl} alt={`${project.title} logo`} className="w-full h-full object-cover" width={28} height={28} unoptimized />
                               ) : (
-                                <span className="text-[10px] text-zinc-500 font-semibold">{project.title.charAt(0).toUpperCase()}</span>
+                                <span className="text-[10px] text-gray-400 font-semibold">{project.title.charAt(0).toUpperCase()}</span>
                               )}
                             </div>
                             <h3 className="text-lg font-bold truncate">{project.title}</h3>
@@ -1450,7 +1463,7 @@ export default function AdminDashboard() {
                             </span>
                           )}
                           {project.publishStatus === 'draft' && (
-                            <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border bg-zinc-500/10 text-zinc-400 border-zinc-500/30">
+                            <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border bg-white/5 text-gray-400 border-white/20">
                               Draft
                             </span>
                           )}
@@ -1460,10 +1473,10 @@ export default function AdminDashboard() {
                         {project.overallProgress !== undefined && project.overallProgress > 0 && (
                           <div className="mb-3">
                             <div className="flex justify-between items-center mb-1">
-                              <span className="text-[10px] text-zinc-500">Progress</span>
-                              <span className="text-[10px] text-zinc-400">{project.overallProgress}%</span>
+                              <span className="text-[10px] text-gray-400">Progress</span>
+                              <span className="text-[10px] text-gray-300">{project.overallProgress}%</span>
                             </div>
-                            <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
                               <div 
                                 className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300"
                                 style={{ width: `${project.overallProgress}%` }}
@@ -1472,12 +1485,12 @@ export default function AdminDashboard() {
                           </div>
                         )}
 
-                        <p className="text-zinc-400 text-sm line-clamp-2 mb-4">{project.description}</p>
+                        <p className="text-gray-300 text-sm line-clamp-2 mb-4">{project.description}</p>
                         <div className="flex flex-wrap gap-2">
                           {technologies.slice(0, 3).map((t, i) => (
-                            <span key={i} className="px-2 py-1 bg-zinc-950 border border-zinc-800 rounded text-xs text-zinc-500">{t}</span>
+                            <span key={i} className="px-2 py-1 bg-black/40 border border-white/10 rounded text-xs text-gray-400">{t}</span>
                           ))}
-                          {technologies.length > 3 && <span className="px-2 py-1 text-xs text-zinc-600">+{technologies.length - 3}</span>}
+                          {technologies.length > 3 && <span className="px-2 py-1 text-xs text-gray-500">+{technologies.length - 3}</span>}
                         </div>
                       </div>
                     </motion.div>
@@ -1491,32 +1504,32 @@ export default function AdminDashboard() {
           {activeTab === 'skills' && (
             <div className="space-y-6">
               {editingSkill && !editingSkill.id && (
-                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-6">
-                  <h3 className="font-semibold mb-4">{editingSkill.id ? 'Edit Skill' : 'Add New Skill'}</h3>
+                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 mb-6">
+                  <h3 className="font-semibold mb-4 text-gray-200">{editingSkill.id ? 'Edit Skill' : 'Add New Skill'}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                     <div className="col-span-2">
-                      <label className="text-xs text-zinc-500 mb-1 block">Skill Name</label>
+                      <label className="text-xs text-gray-400 mb-1 block">Skill Name</label>
                       <input
                         value={editingSkill.name}
                         onChange={e => setEditingSkill({ ...editingSkill, name: e.target.value })}
-                        className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-500 mb-1 block">Icon</label>
+                      <label className="text-xs text-gray-400 mb-1 block">Icon</label>
                       <input
                         value={editingSkill.icon || ''}
                         onChange={e => setEditingSkill({ ...editingSkill, icon: e.target.value })}
-                        className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                         placeholder="e.g. ⚛️"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-500 mb-1 block">Category</label>
+                      <label className="text-xs text-gray-400 mb-1 block">Category</label>
                       <select
                         value={editingSkill.category}
                         onChange={e => setEditingSkill({ ...editingSkill, category: e.target.value })}
-                        className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                       >
                         {skillCategories.map((category) => (
                           <option key={category.value} value={category.value}>{category.label}</option>
@@ -1524,7 +1537,7 @@ export default function AdminDashboard() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-500 mb-1 block">Proficiency ({editingSkill.proficiency}%)</label>
+                      <label className="text-xs text-gray-400 mb-1 block">Proficiency ({editingSkill.proficiency}%)</label>
                       <input
                         type="range"
                         min="0" max="100"
@@ -1534,9 +1547,20 @@ export default function AdminDashboard() {
                       />
                     </div>
                   </div>
-                  <div className="mt-4 flex gap-2 justify-end">
-                    <button onClick={() => setEditingSkill(null)} className="px-3 py-1.5 text-zinc-400 text-sm">Cancel</button>
-                    <button onClick={saveSkill} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm">Save Skill</button>
+                  <div className="mt-4 flex items-center justify-between">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={editingSkill.isEnabled !== false}
+                        onChange={e => setEditingSkill({ ...editingSkill, isEnabled: e.target.checked })}
+                        className="w-4 h-4 rounded border-white/20 bg-white/5 backdrop-blur-md"
+                      />
+                      <span className="text-sm text-gray-200">Show on portfolio</span>
+                    </label>
+                    <div className="flex gap-2">
+                      <button onClick={() => setEditingSkill(null)} className="px-3 py-1.5 text-gray-300 text-sm">Cancel</button>
+                      <button onClick={saveSkill} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm">Save Skill</button>
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -1547,38 +1571,38 @@ export default function AdminDashboard() {
                   if (catSkills.length === 0 && !editingSkill) return null
                   return (
                     <div key={category.value} className="space-y-3">
-                      <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-2">
+                      <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-blue-500" />
                         {category.label}
                       </h3>
                       <div className="space-y-2">
                         {catSkills.map(skill => (
                           editingSkill?.id === skill.id ? (
-                            <motion.div key={skill.id} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-zinc-900 border border-blue-500/40 rounded-lg p-4">
+                            <motion.div key={skill.id} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-white/5 backdrop-blur-md border border-blue-500/40 rounded-lg p-4">
                               <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
                                 <div className="md:col-span-2">
-                                  <label className="text-xs text-zinc-500 mb-1 block">Skill Name</label>
+<label className="text-xs text-gray-400 mb-1 block">Skill Name</label>
                                   <input
                                     value={editingSkill!.name}
                                     onChange={e => setEditingSkill({ ...editingSkill!, name: e.target.value })}
-                                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-xs text-zinc-500 mb-1 block">Icon</label>
+<label className="text-xs text-gray-400 mb-1 block">Icon</label>
                                   <input
                                     value={editingSkill!.icon || ''}
                                     onChange={e => setEditingSkill({ ...editingSkill!, icon: e.target.value })}
-                                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                                     placeholder="e.g. ⚛️"
                                   />
                                 </div>
                                 <div>
-                                  <label className="text-xs text-zinc-500 mb-1 block">Category</label>
+<label className="text-xs text-gray-400 mb-1 block">Category</label>
                                   <select
                                     value={editingSkill!.category}
                                     onChange={e => setEditingSkill({ ...editingSkill!, category: e.target.value })}
-                                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                                    className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                                   >
                                     {skillCategories.map((category) => (
                                       <option key={category.value} value={category.value}>{category.label}</option>
@@ -1586,26 +1610,37 @@ export default function AdminDashboard() {
                                   </select>
                                 </div>
                                 <div>
-                                  <label className="text-xs text-zinc-500 mb-1 block">Proficiency ({editingSkill!.proficiency}%)</label>
+                                  <label className="text-xs text-gray-400 mb-1 block">Proficiency ({editingSkill!.proficiency}%)</label>
                                   <input
                                     type="range"
                                     min="0"
                                     max="100"
                                     value={editingSkill!.proficiency}
                                     onChange={e => setEditingSkill({ ...editingSkill!, proficiency: parseInt(e.target.value) })}
-                                    className="w-full accent-blue-600"
+className="w-full accent-blue-600 bg-transparent"
                                   />
                                 </div>
                               </div>
-                              <div className="mt-3 flex justify-end gap-2">
-                                <button onClick={() => setEditingSkill(null)} className="px-3 py-1.5 text-zinc-400 text-sm">Cancel</button>
-                                <button onClick={saveSkill} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm">Save Skill</button>
+                              <div className="mt-3 flex items-center justify-between">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={editingSkill!.isEnabled !== false}
+                                    onChange={e => setEditingSkill({ ...editingSkill!, isEnabled: e.target.checked })}
+className="w-4 h-4 rounded border-white/20 bg-white/5"
+                                  />
+<span className="text-sm text-gray-300">Show on portfolio</span>
+                                </label>
+                                <div className="flex gap-2">
+                                  <button onClick={() => setEditingSkill(null)} className="px-3 py-1.5 text-gray-300 text-sm">Cancel</button>
+                                  <button onClick={saveSkill} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-sm">Save Skill</button>
+                                </div>
                               </div>
                             </motion.div>
                           ) : (
-                            <div key={skill.id} className="bg-zinc-900 border border-zinc-800 rounded-lg p-3 flex items-center justify-between group hover:border-zinc-700 transition-colors">
+                            <div key={skill.id} className={`bg-white/5 backdrop-blur-md border rounded-lg p-3 flex items-center justify-between group hover:border-white/20 transition-colors ${skill.isEnabled === false ? 'border-red-500/30 opacity-60' : 'border-white/10'}`}>
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded bg-zinc-950 flex items-center justify-center text-zinc-400 font-bold text-xs border border-zinc-800">
+                                <div className={`w-8 h-8 rounded bg-black/40 flex items-center justify-center text-gray-400 font-bold text-xs border ${skill.isEnabled === false ? 'border-red-500/30' : 'border-white/10'}`}>
                                   {skill.icon ? (
                                     <span className="text-base leading-none">{skill.icon}</span>
                                   ) : (
@@ -1613,20 +1648,25 @@ export default function AdminDashboard() {
                                   )}
                                 </div>
                                 <div>
-                                  <p className="font-medium text-sm text-zinc-200">{skill.name}</p>
-                                  <div className="w-24 h-1 bg-zinc-800 rounded-full mt-1.5">
-                                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${skill.proficiency}%` }} />
+                                  <div className="flex items-center gap-2">
+                                    <p className={`font-medium text-sm ${skill.isEnabled === false ? 'text-gray-400' : 'text-gray-200'}`}>{skill.name}</p>
+                                    {skill.isEnabled === false && (
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">Hidden</span>
+                                    )}
+                                  </div>
+                                  <div className="w-24 h-1 bg-white/10 rounded-full mt-1.5">
+                                    <div className={`h-full rounded-full ${skill.isEnabled === false ? 'bg-gray-500' : 'bg-blue-600'}`} style={{ width: `${skill.proficiency}%` }} />
                                   </div>
                                 </div>
                               </div>
                               <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onClick={() => setEditingSkill(skill)} className="p-1.5 hover:bg-zinc-800 rounded text-blue-400"><Edit size={14} /></button>
-                                <button onClick={() => deleteSkill(skill.id!)} className="p-1.5 hover:bg-zinc-800 rounded text-red-400"><Trash2 size={14} /></button>
+                                <button onClick={() => setEditingSkill(skill)} className="p-1.5 hover:bg-white/10 rounded text-blue-400"><Edit size={14} /></button>
+                                <button onClick={() => deleteSkill(skill.id!)} className="p-1.5 hover:bg-white/10 rounded text-red-400"><Trash2 size={14} /></button>
                               </div>
                             </div>
                           )
                         ))}
-                        {catSkills.length === 0 && <p className="text-zinc-600 text-sm italic">No skills in this category</p>}
+                        {catSkills.length === 0 && <p className="text-gray-500 text-sm italic">No skills in this category</p>}
                       </div>
                     </div>
                   )
@@ -1639,7 +1679,7 @@ export default function AdminDashboard() {
           {activeTab === 'experience' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold">Experience</h3>
+                <h3 className="text-2xl font-bold text-gray-200">Experience</h3>
                 {!editingExperience && (
                   <button
                     onClick={() => setEditingExperience({
@@ -1654,53 +1694,53 @@ export default function AdminDashboard() {
               </div>
 
               {editingExperience && (
-                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-6">
-                  <h3 className="font-semibold mb-4">{editingExperience.id ? 'Edit Experience' : 'Add New Experience'}</h3>
+                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 mb-6">
+                  <h3 className="font-semibold mb-4 text-gray-200">{editingExperience.id ? 'Edit Experience' : 'Add New Experience'}</h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">Company</label>
+                        <label className="text-xs text-gray-400 mb-1 block">Company</label>
                         <input
                           value={editingExperience.company}
                           onChange={e => setEditingExperience({ ...editingExperience, company: e.target.value })}
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">Position</label>
+                        <label className="text-xs text-gray-400 mb-1 block">Position</label>
                         <input
                           value={editingExperience.position}
                           onChange={e => setEditingExperience({ ...editingExperience, position: e.target.value })}
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-500 mb-1 block">Description</label>
+                      <label className="text-xs text-gray-400 mb-1 block">Description</label>
                       <textarea
                         value={editingExperience.description}
                         onChange={e => setEditingExperience({ ...editingExperience, description: e.target.value })}
-                        className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500 min-h-[100px]"
+                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500 min-h-[100px]"
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">Start Date</label>
+                        <label className="text-xs text-gray-400 mb-1 block">Start Date</label>
                         <input
                           type="date"
                           value={editingExperience.startDate ? new Date(editingExperience.startDate).toISOString().split('T')[0] : ''}
                           onChange={e => setEditingExperience({ ...editingExperience, startDate: e.target.value })}
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">End Date</label>
+                        <label className="text-xs text-gray-400 mb-1 block">End Date</label>
                         <input
                           type="date"
                           value={editingExperience.endDate ? new Date(editingExperience.endDate).toISOString().split('T')[0] : ''}
                           onChange={e => setEditingExperience({ ...editingExperience, endDate: e.target.value })}
                           disabled={editingExperience.current}
-                          className={`w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500 ${editingExperience.current ? 'opacity-50' : ''}`}
+                          className={`w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500 ${editingExperience.current ? 'opacity-50' : ''}`}
                         />
                       </div>
                       <div className="flex items-center pt-6">
@@ -1709,23 +1749,23 @@ export default function AdminDashboard() {
                             type="checkbox"
                             checked={editingExperience.current}
                             onChange={e => setEditingExperience({ ...editingExperience, current: e.target.checked })}
-                            className="w-4 h-4 rounded border-zinc-700 bg-zinc-900"
+                            className="w-4 h-4 rounded border-white/20 bg-white/5 backdrop-blur-md"
                           />
                           <span className="text-sm">Current Position</span>
                         </label>
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-500 mb-1 block">Location</label>
+                      <label className="text-xs text-gray-400 mb-1 block">Location</label>
                       <input
                         value={editingExperience.location || ''}
                         onChange={e => setEditingExperience({ ...editingExperience, location: e.target.value })}
-                        className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end gap-3">
-                    <button onClick={() => setEditingExperience(null)} className="px-4 py-2 text-zinc-400 hover:text-white text-sm">Cancel</button>
+                    <button onClick={() => setEditingExperience(null)} className="px-4 py-2 text-gray-300 hover:text-white text-sm">Cancel</button>
                     <button onClick={handleSaveExperience} disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2">
                       <Save size={16} /> Save Experience
                     </button>
@@ -1738,21 +1778,21 @@ export default function AdminDashboard() {
                   <motion.div
                     key={exp.id}
                     layout
-                    className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 group hover:border-zinc-700 transition-colors"
+                    className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 group hover:border-white/20 transition-colors"
                   >
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div className="w-full">
+                    <div className="flex justify-between items-start">
+                      <div>
                         <h4 className="text-xl font-bold text-white mb-1">{exp.position}</h4>
                         <h5 className="text-lg text-blue-400 mb-2">{exp.company}</h5>
-                        <div className="flex items-center gap-4 text-sm text-zinc-500 mb-4">
+                        <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
                           <span>{new Date(exp.startDate).toLocaleDateString()} - {exp.current ? 'Present' : new Date(exp.endDate!).toLocaleDateString()}</span>
                           {exp.location && <span>• {exp.location}</span>}
                         </div>
-                        <p className="text-zinc-300 whitespace-pre-line">{exp.description}</p>
+                        <p className="text-gray-300 whitespace-pre-line">{exp.description}</p>
                       </div>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => setEditingExperience(exp)} className="p-2 hover:bg-zinc-800 rounded-lg text-blue-400"><Edit size={16} /></button>
-                        <button onClick={() => deleteExperience(exp.id!)} className="p-2 hover:bg-zinc-800 rounded-lg text-red-400"><Trash2 size={16} /></button>
+                        <button onClick={() => setEditingExperience(exp)} className="p-2 hover:bg-white/10 rounded-lg text-blue-400"><Edit size={16} /></button>
+                        <button onClick={() => deleteExperience(exp.id!)} className="p-2 hover:bg-white/10 rounded-lg text-red-400"><Trash2 size={16} /></button>
                       </div>
                     </div>
                   </motion.div>
@@ -1765,7 +1805,7 @@ export default function AdminDashboard() {
           {activeTab === 'education' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold">Education</h3>
+                <h3 className="text-2xl font-bold text-gray-200">Education</h3>
                 {!editingEducation && (
                   <button
                     onClick={() => setEditingEducation({
@@ -1780,61 +1820,61 @@ export default function AdminDashboard() {
               </div>
 
               {editingEducation && (
-                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-6">
-                  <h3 className="font-semibold mb-4">{editingEducation.id ? 'Edit Education' : 'Add New Education'}</h3>
+                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 mb-6">
+                  <h3 className="font-semibold mb-4 text-gray-200">{editingEducation.id ? 'Edit Education' : 'Add New Education'}</h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">Institution</label>
+                        <label className="text-xs text-gray-400 mb-1 block">Institution</label>
                         <input
                           value={editingEducation.institution}
                           onChange={e => setEditingEducation({ ...editingEducation, institution: e.target.value })}
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">Degree</label>
+                        <label className="text-xs text-gray-400 mb-1 block">Degree</label>
                         <input
                           value={editingEducation.degree}
                           onChange={e => setEditingEducation({ ...editingEducation, degree: e.target.value })}
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-500 mb-1 block">Field of Study</label>
+                      <label className="text-xs text-gray-400 mb-1 block">Field of Study</label>
                       <input
                         value={editingEducation.field || ''}
                         onChange={e => setEditingEducation({ ...editingEducation, field: e.target.value })}
-                        className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-500 mb-1 block">Description</label>
+                      <label className="text-xs text-gray-400 mb-1 block">Description</label>
                       <textarea
                         value={editingEducation.description || ''}
                         onChange={e => setEditingEducation({ ...editingEducation, description: e.target.value })}
-                        className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500 min-h-[100px]"
+                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500 min-h-[100px]"
                       />
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">Start Date</label>
+                        <label className="text-xs text-gray-400 mb-1 block">Start Date</label>
                         <input
                           type="date"
                           value={editingEducation.startDate ? new Date(editingEducation.startDate).toISOString().split('T')[0] : ''}
                           onChange={e => setEditingEducation({ ...editingEducation, startDate: e.target.value })}
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">End Date</label>
+                        <label className="text-xs text-gray-400 mb-1 block">End Date</label>
                         <input
                           type="date"
                           value={editingEducation.endDate ? new Date(editingEducation.endDate).toISOString().split('T')[0] : ''}
                           onChange={e => setEditingEducation({ ...editingEducation, endDate: e.target.value })}
                           disabled={editingEducation.current}
-                          className={`w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500 ${editingEducation.current ? 'opacity-50' : ''}`}
+                          className={`w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500 ${editingEducation.current ? 'opacity-50' : ''}`}
                         />
                       </div>
                       <div className="flex items-center pt-6">
@@ -1843,23 +1883,23 @@ export default function AdminDashboard() {
                             type="checkbox"
                             checked={editingEducation.current}
                             onChange={e => setEditingEducation({ ...editingEducation, current: e.target.checked })}
-                            className="w-4 h-4 rounded border-zinc-700 bg-zinc-900"
+                            className="w-4 h-4 rounded border-white/20 bg-white/5 backdrop-blur-md"
                           />
                           <span className="text-sm">Current Student</span>
                         </label>
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-zinc-500 mb-1 block">GPA</label>
+                      <label className="text-xs text-gray-400 mb-1 block">GPA</label>
                       <input
                         value={editingEducation.gpa || ''}
                         onChange={e => setEditingEducation({ ...editingEducation, gpa: e.target.value })}
-                        className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                       />
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end gap-3">
-                    <button onClick={() => setEditingEducation(null)} className="px-4 py-2 text-zinc-400 hover:text-white text-sm">Cancel</button>
+                    <button onClick={() => setEditingEducation(null)} className="px-4 py-2 text-gray-300 hover:text-white text-sm">Cancel</button>
                     <button onClick={handleSaveEducation} disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2">
                       <Save size={16} /> Save Education
                     </button>
@@ -1872,21 +1912,21 @@ export default function AdminDashboard() {
                   <motion.div
                     key={edu.id}
                     layout
-                    className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 group hover:border-zinc-700 transition-colors"
+                    className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 group hover:border-white/20 transition-colors"
                   >
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div className="w-full">
+                    <div className="flex justify-between items-start">
+                      <div>
                         <h4 className="text-xl font-bold text-white mb-1">{edu.degree} {edu.field && `in ${edu.field}`}</h4>
                         <h5 className="text-lg text-blue-400 mb-2">{edu.institution}</h5>
-                        <div className="flex items-center gap-4 text-sm text-zinc-500 mb-4">
+                        <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
                           <span>{new Date(edu.startDate).toLocaleDateString()} - {edu.current ? 'Present' : new Date(edu.endDate!).toLocaleDateString()}</span>
                           {edu.gpa && <span>• GPA: {edu.gpa}</span>}
                         </div>
-                        <p className="text-zinc-300 whitespace-pre-line">{edu.description}</p>
+                        <p className="text-gray-200 whitespace-pre-line">{edu.description}</p>
                       </div>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => setEditingEducation(edu)} className="p-2 hover:bg-zinc-800 rounded-lg text-blue-400"><Edit size={16} /></button>
-                        <button onClick={() => deleteEducation(edu.id!)} className="p-2 hover:bg-zinc-800 rounded-lg text-red-400"><Trash2 size={16} /></button>
+                        <button onClick={() => setEditingEducation(edu)} className="p-2 hover:bg-white/10 rounded-lg text-blue-400"><Edit size={16} /></button>
+                        <button onClick={() => deleteEducation(edu.id!)} className="p-2 hover:bg-white/10 rounded-lg text-red-400"><Trash2 size={16} /></button>
                       </div>
                     </div>
                   </motion.div>
@@ -1899,12 +1939,11 @@ export default function AdminDashboard() {
           {activeTab === 'certifications' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold">Certifications</h3>
+                <h3 className="text-2xl font-bold text-gray-200">Certifications</h3>
                 {!editingCertification && (
                   <button
                     onClick={() => setEditingCertification({
-                      name: '', issuer: '', description: '',
-                      date: '', order: certifications.length
+                      name: '', issuer: '', date: new Date().toISOString().split('T')[0], order: certifications.length
                     })}
                     className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
                   >
@@ -1914,62 +1953,62 @@ export default function AdminDashboard() {
               </div>
 
               {editingCertification && (
-                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-6">
-                  <h3 className="font-semibold mb-4">{editingCertification.id ? 'Edit Certification' : 'Add New Certification'}</h3>
+                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 mb-6">
+                  <h3 className="font-semibold mb-4 text-gray-200">{editingCertification.id ? 'Edit Certification' : 'Add New Certification'}</h3>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">Certification Name</label>
+                        <label className="text-xs text-gray-400 mb-1 block">Certification Name</label>
                         <input
                           value={editingCertification.name}
                           onChange={e => setEditingCertification({ ...editingCertification, name: e.target.value })}
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
-                          placeholder="e.g. AWS Certified Solutions Architect"
+                          className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
+                          placeholder="e.g. AWS Solutions Architect"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">Issuing Organization</label>
+                        <label className="text-xs text-gray-400 mb-1 block">Issuer</label>
                         <input
                           value={editingCertification.issuer}
                           onChange={e => setEditingCertification({ ...editingCertification, issuer: e.target.value })}
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                           placeholder="e.g. Amazon Web Services"
                         />
                       </div>
                     </div>
-                    <div>
-                      <label className="text-xs text-zinc-500 mb-1 block">Description</label>
-                      <textarea
-                        value={editingCertification.description || ''}
-                        onChange={e => setEditingCertification({ ...editingCertification, description: e.target.value })}
-                        className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500 min-h-[100px]"
-                        placeholder="Describe what you learned or achieved..."
-                      />
-                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">Issue Date</label>
+                        <label className="text-xs text-gray-400 mb-1 block">Issue Date</label>
                         <input
                           type="date"
                           value={editingCertification.date ? new Date(editingCertification.date).toISOString().split('T')[0] : ''}
                           onChange={e => setEditingCertification({ ...editingCertification, date: e.target.value })}
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-zinc-500 mb-1 block">Credential URL (optional)</label>
+                        <label className="text-xs text-gray-400 mb-1 block">Credential URL (optional)</label>
                         <input
                           type="url"
                           value={editingCertification.url || ''}
                           onChange={e => setEditingCertification({ ...editingCertification, url: e.target.value })}
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500"
                           placeholder="https://..."
                         />
                       </div>
                     </div>
+                    <div>
+                      <label className="text-xs text-gray-400 mb-1 block">Description (optional)</label>
+                      <textarea
+                        value={editingCertification.description || ''}
+                        onChange={e => setEditingCertification({ ...editingCertification, description: e.target.value })}
+                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg outline-none focus:border-blue-500 min-h-[100px]"
+                        placeholder="Brief description of the certification..."
+                      />
+                    </div>
                   </div>
                   <div className="mt-6 flex justify-end gap-3">
-                    <button onClick={() => setEditingCertification(null)} className="px-4 py-2 text-zinc-400 hover:text-white text-sm">Cancel</button>
+                    <button onClick={() => setEditingCertification(null)} className="px-4 py-2 text-gray-300 hover:text-white text-sm">Cancel</button>
                     <button onClick={handleSaveCertification} disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2">
                       <Save size={16} /> Save Certification
                     </button>
@@ -1977,39 +2016,58 @@ export default function AdminDashboard() {
                 </motion.div>
               )}
 
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {certifications.map((cert) => (
                   <motion.div
                     key={cert.id}
                     layout
-                    className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 group hover:border-zinc-700 transition-colors"
+                    className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 group hover:border-white/20 transition-colors"
                   >
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                      <div className="w-full">
-                        <h4 className="text-xl font-bold text-white mb-1">{cert.name}</h4>
-                        <h5 className="text-lg text-yellow-400 mb-2">{cert.issuer}</h5>
-                        <div className="flex items-center gap-4 text-sm text-zinc-500 mb-4">
-                          <span>Issued: {new Date(cert.date).toLocaleDateString()}</span>
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-400">
+                            <Award size={24} />
+                          </div>
+                          <div>
+                            <h4 className="text-xl font-bold text-white">{cert.name}</h4>
+                            <h5 className="text-lg text-yellow-400">{cert.issuer}</h5>
+                          </div>
                         </div>
-                        {cert.description && <p className="text-zinc-300 whitespace-pre-line mb-4">{cert.description}</p>}
+                        <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
+                          <span className="flex items-center gap-1">
+                            <Calendar size={14} />
+                            {new Date(cert.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+                          </span>
+                        </div>
+                        {cert.description && (
+                          <p className="text-gray-200 whitespace-pre-line mb-4">{cert.description}</p>
+                        )}
                         {cert.url && (
                           <a
                             href={cert.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm"
+                            className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors text-sm"
                           >
-                            <Eye size={14} /> View Credential
+                            <ExternalLink size={14} />
+                            View Credential
                           </a>
                         )}
                       </div>
-                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={() => setEditingCertification(cert)} className="p-2 hover:bg-zinc-800 rounded-lg text-blue-400"><Edit size={16} /></button>
-                        <button onClick={() => deleteCertification(cert.id!)} className="p-2 hover:bg-zinc-800 rounded-lg text-red-400"><Trash2 size={16} /></button>
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity ml-4">
+                        <button onClick={() => setEditingCertification(cert)} className="p-2 hover:bg-white/10 rounded-lg text-blue-400"><Edit size={16} /></button>
+                        <button onClick={() => deleteCertification(cert.id!)} className="p-2 hover:bg-white/10 rounded-lg text-red-400"><Trash2 size={16} /></button>
                       </div>
                     </div>
                   </motion.div>
                 ))}
+                {certifications.length === 0 && !editingCertification && (
+                  <div className="col-span-full text-center py-12 text-gray-400">
+                    <Award size={48} className="mx-auto mb-4 opacity-50" />
+                    <p>No certifications yet. Click "Add Certification" to add your first one.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -2018,11 +2076,11 @@ export default function AdminDashboard() {
           {activeTab === 'messages' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-2xl font-bold">Messages</h3>
+                <h3 className="text-2xl font-bold text-gray-200">Messages</h3>
                 {unreadCount > 0 && <span className="text-sm bg-blue-500/20 text-blue-400 px-3 py-1 rounded-full">{unreadCount} unread</span>}
               </div>
               <div className="space-y-4">
-                {messages.length === 0 && <p className="text-zinc-500">No messages yet.</p>}
+                {messages.length === 0 && <p className="text-gray-400">No messages yet.</p>}
                 {messages.map((msg) => {
                   const isExpanded = expandedMessages[msg.id] ?? false
                   return (
@@ -2030,39 +2088,39 @@ export default function AdminDashboard() {
                       key={msg.id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className={`bg-zinc-900 border ${msg.status === 'unread' ? 'border-blue-500/50' : 'border-zinc-800'} rounded-xl p-6`}
+                      className={`bg-white/5 backdrop-blur-md border ${msg.status === 'unread' ? 'border-blue-500/50' : 'border-white/10'} rounded-xl p-6`}
                     >
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h4 className="text-lg font-bold text-white">{msg.name}</h4>
-                        <p className="text-zinc-400 text-sm">{msg.email}</p>
+                        <p className="text-gray-300 text-sm">{msg.email}</p>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap justify-end">
                         <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${msg.status === 'unread' ? 'bg-blue-500/20 text-blue-400' :
                             msg.status === 'replied' ? 'bg-green-500/20 text-green-400' :
-                              'bg-zinc-700 text-zinc-400'
+                              'bg-white/10 text-gray-300'
                           }`}>{msg.status}</span>
-                        <span className="text-xs text-zinc-500">{new Date(msg.createdAt).toLocaleDateString()}</span>
+                        <span className="text-xs text-gray-400">{new Date(msg.createdAt).toLocaleDateString()}</span>
                         <button
                           onClick={() => setExpandedMessages((prev) => ({ ...prev, [msg.id]: !isExpanded }))}
-                          className="text-xs px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors inline-flex items-center gap-1"
+                          className="text-xs px-3 py-1.5 bg-white/10 hover:bg-white/20 text-gray-300 rounded-lg transition-colors inline-flex items-center gap-1"
                         >
                           {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                           {isExpanded ? 'Collapse' : 'Expand'}
                         </button>
                       </div>
                     </div>
-                    {msg.subject && <h5 className="font-semibold text-zinc-200 mb-2">{msg.subject}</h5>}
+                    {msg.subject && <h5 className="font-semibold text-gray-200 mb-2">{msg.subject}</h5>}
                     {isExpanded ? (
-                      <p className="text-zinc-300 whitespace-pre-wrap mb-4">{msg.message}</p>
+                      <p className="text-gray-300 whitespace-pre-wrap mb-4">{msg.message}</p>
                     ) : (
-                      <p className="text-zinc-400 text-sm line-clamp-2 mb-4">{msg.message}</p>
+                      <p className="text-gray-300 text-sm line-clamp-2 mb-4">{msg.message}</p>
                     )}
-                    <div className="flex gap-2 pt-3 border-t border-zinc-800">
+                    <div className="flex gap-2 pt-3 border-t border-white/10">
                       <button
                         onClick={() => handleUpdateMessageStatus(msg.id, 'read')}
                         disabled={msg.status === 'read'}
-                        className="text-xs px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="text-xs px-3 py-1.5 bg-white/10 hover:bg-white/20 text-gray-300 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Mark as Read
                       </button>
@@ -2085,14 +2143,14 @@ export default function AdminDashboard() {
           {/* SETTINGS TAB */}
           {activeTab === 'settings' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto">
-              <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
-                <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden">
+                <div className="p-6 border-b border-white/10 flex justify-between items-center">
                   <h3 className="font-semibold text-lg">Site Settings</h3>
                   {!editingSettings ? (
                     <button onClick={() => setEditingSettings(true)} className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"><Pencil size={14} /> Edit</button>
                   ) : (
                     <div className="flex gap-2">
-                      <button onClick={() => { setEditingSettings(false); }} className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg text-sm">Cancel</button>
+                      <button onClick={() => { setEditingSettings(false); }} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-gray-300 rounded-lg text-sm">Cancel</button>
                       <button onClick={handleSaveSettings} disabled={loading} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50">
                         {loading ? 'Saving...' : 'Save'}
                       </button>
@@ -2101,36 +2159,36 @@ export default function AdminDashboard() {
                 </div>
                 <div className="p-6 space-y-6">
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Site Title</label>
+                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Site Title</label>
                     {editingSettings ? (
-                      <input type="text" value={settingsForm.siteTitle} onChange={e => setSettingsForm({ ...settingsForm, siteTitle: e.target.value })} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="My Portfolio" />
+                      <input type="text" value={settingsForm.siteTitle} onChange={e => setSettingsForm({ ...settingsForm, siteTitle: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="My Portfolio" />
                     ) : (
-                      <p className="p-2 text-zinc-300">{settings.siteTitle || 'Not set'}</p>
+                      <p className="p-2 text-gray-300">{settings.siteTitle || 'Not set'}</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">SEO Description</label>
+                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">SEO Description</label>
                     {editingSettings ? (
-                      <textarea value={settingsForm.siteDescription} onChange={e => setSettingsForm({ ...settingsForm, siteDescription: e.target.value })} rows={3} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none resize-none" placeholder="Meta description for search engines" />
+                      <textarea value={settingsForm.siteDescription} onChange={e => setSettingsForm({ ...settingsForm, siteDescription: e.target.value })} rows={3} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none resize-none" placeholder="Meta description for search engines" />
                     ) : (
-                      <p className="p-2 text-zinc-300">{settings.siteDescription || 'Not set'}</p>
+                      <p className="p-2 text-gray-300">{settings.siteDescription || 'Not set'}</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Copyright Text</label>
+                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Copyright Text</label>
                     {editingSettings ? (
-                      <input type="text" value={settingsForm.copyrightText} onChange={e => setSettingsForm({ ...settingsForm, copyrightText: e.target.value })} className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="All rights reserved." />
+                      <input type="text" value={settingsForm.copyrightText} onChange={e => setSettingsForm({ ...settingsForm, copyrightText: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="All rights reserved." />
                     ) : (
-                      <p className="p-2 text-zinc-300">{settings.copyrightText || 'Not set'}</p>
+                      <p className="p-2 text-gray-300">{settings.copyrightText || 'Not set'}</p>
                     )}
                   </div>
-                  <div className="flex items-center justify-between p-4 bg-zinc-950 rounded-lg border border-zinc-800">
+                  <div className="flex items-center justify-between p-4 bg-black/40 rounded-lg border border-white/10">
                     <div>
-                      <label className="text-sm font-medium text-zinc-300">Maintenance Mode</label>
-                      <p className="text-xs text-zinc-500 mt-1">Show a maintenance page to visitors</p>
+                      <label className="text-sm font-medium text-gray-300">Maintenance Mode</label>
+                      <p className="text-xs text-gray-400 mt-1">Show a maintenance page to visitors</p>
                     </div>
                     {editingSettings ? (
-                      <button onClick={() => setSettingsForm({ ...settingsForm, maintenanceMode: !settingsForm.maintenanceMode })} className={`w-12 h-6 rounded-full transition-colors ${settingsForm.maintenanceMode ? 'bg-red-500' : 'bg-zinc-700'} relative`}>
+                      <button onClick={() => setSettingsForm({ ...settingsForm, maintenanceMode: !settingsForm.maintenanceMode })} className={`w-12 h-6 rounded-full transition-colors ${settingsForm.maintenanceMode ? 'bg-red-500' : 'bg-white/20'} relative`}>
                         <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${settingsForm.maintenanceMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
                       </button>
                     ) : (

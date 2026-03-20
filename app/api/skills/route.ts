@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const includeDisabled = searchParams.get('includeDisabled') === 'true'
+    
     const skills = await prisma.skill.findMany({
+      where: includeDisabled ? {} : { isEnabled: true },
       orderBy: [{ category: 'asc' }, { order: 'asc' }, { name: 'asc' }]
     })
     
@@ -27,7 +31,8 @@ export async function POST(request: NextRequest) {
         category: data.category,
         proficiency: data.proficiency || 50,
         icon: data.icon,
-        order: data.order || 0
+        order: data.order || 0,
+        isEnabled: data.isEnabled !== undefined ? data.isEnabled : true
       }
     })
     

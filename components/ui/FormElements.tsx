@@ -20,10 +20,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         )}
         <input
           ref={ref}
-          className={`w-full px-4 py-2.5 bg-zinc-900 border rounded-lg text-white placeholder-gray-500 
+          className={`w-full px-4 py-2.5 bg-white/5 backdrop-blur-sm border rounded-lg text-white placeholder-gray-500 
             focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 
             transition-all duration-200
-            ${error ? 'border-red-500' : 'border-zinc-700 hover:border-zinc-600'}
+            ${error ? 'border-red-500' : 'border-white/10 hover:border-white/20'}
             ${className}`}
           {...props}
         />
@@ -53,10 +53,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
         <textarea
           ref={ref}
-          className={`w-full px-4 py-2.5 bg-zinc-900 border rounded-lg text-white placeholder-gray-500 
+          className={`w-full px-4 py-2.5 bg-white/5 backdrop-blur-sm border rounded-lg text-white placeholder-gray-500 
             focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 
             transition-all duration-200 resize-none
-            ${error ? 'border-red-500' : 'border-zinc-700 hover:border-zinc-600'}
+            ${error ? 'border-red-500' : 'border-white/10 hover:border-white/20'}
             ${className}`}
           {...props}
         />
@@ -87,10 +87,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         )}
         <select
           ref={ref}
-          className={`w-full px-4 py-2.5 bg-zinc-900 border rounded-lg text-white 
+          className={`w-full px-4 py-2.5 bg-white/5 backdrop-blur-sm border rounded-lg text-white 
             focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 
             transition-all duration-200 cursor-pointer
-            ${error ? 'border-red-500' : 'border-zinc-700 hover:border-zinc-600'}
+            ${error ? 'border-red-500' : 'border-white/10 hover:border-white/20'}
             ${className}`}
           {...props}
         >
@@ -131,9 +131,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   }, ref) => {
     const variants = {
       primary: 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white',
-      secondary: 'bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700',
+      secondary: 'bg-white/10 hover:bg-white/20 text-white border border-white/20',
       danger: 'bg-red-600 hover:bg-red-700 text-white',
-      ghost: 'hover:bg-zinc-800 text-gray-300 hover:text-white'
+      ghost: 'hover:bg-white/10 text-gray-300 hover:text-white'
     }
 
     const sizes = {
@@ -187,8 +187,8 @@ interface CardProps {
 export function Card({ children, className = '', hover = false }: CardProps) {
   return (
     <div
-      className={`bg-zinc-900/50 border border-zinc-800 rounded-xl p-6 
-        ${hover ? 'hover:border-zinc-700 transition-colors' : ''}
+      className={`bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6 
+        ${hover ? 'hover:border-white/20 transition-colors' : ''}
         ${className}`}
     >
       {children}
@@ -208,7 +208,7 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       {icon && (
-        <div className="w-16 h-16 mb-4 rounded-full bg-zinc-800 flex items-center justify-center text-gray-400">
+        <div className="w-16 h-16 mb-4 rounded-full bg-white/10 flex items-center justify-center text-gray-400">
           {icon}
         </div>
       )}
