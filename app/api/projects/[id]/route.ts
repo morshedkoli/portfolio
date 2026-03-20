@@ -80,7 +80,6 @@ export async function PUT(
         deployment: data.deployment,
         githubUrl: data.githubUrl || null,
         demoUrl: data.demoUrl || null,
-        imageUrl: data.imageUrl,
         featured: data.featured || false,
         order: data.order || 0,
         overallProgress

@@ -81,7 +81,6 @@ export async function POST(request: NextRequest) {
         deployment: data.deployment,
         githubUrl: data.githubUrl || null,
         demoUrl: data.demoUrl || null,
-        imageUrl: data.imageUrl,
         featured: data.featured || false,
         order: data.order || 0,
         overallProgress: data.overallProgress || 0

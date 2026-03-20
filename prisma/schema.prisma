@@ -182,6 +182,11 @@ type DeploymentInfo {
   branch      String?
 }
 
+type ProjectLink {
+  url       String
+  enabled   Boolean     @default(true)
+}
+
 model Project {
   id                String                  @id @default(auto()) @map("_id") @db.ObjectId
   title             String
@@ -226,10 +231,23 @@ model Project {
   // Deployment info
   deployment        DeploymentInfo?
   
-  // Links
+  // Project Links
   githubUrl         String?
   demoUrl           String?
-  imageUrl          String?
+  clientProjectUrl  String?
+  adminProjectUrl   String?
+  clientLiveUrl     String?
+  adminLiveUrl      String?
+  androidDownloadUrl String?
+  
+  // Link visibility toggles
+  githubUrlEnabled         Boolean @default(true)
+  demoUrlEnabled           Boolean @default(true)
+  clientProjectUrlEnabled  Boolean @default(false)
+  adminProjectUrlEnabled   Boolean @default(false)
+  clientLiveUrlEnabled     Boolean @default(false)
+  adminLiveUrlEnabled      Boolean @default(false)
+  androidDownloadUrlEnabled Boolean @default(false)
   
   // Flags
   featured          Boolean                 @default(false)
@@ -314,4 +332,16 @@ model Analytics {
   userAgent String?
   ip        String?
   createdAt DateTime @default(now())
+}
+
+model Certification {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  issuer      String
+  date        DateTime
+  url         String?
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

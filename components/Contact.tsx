@@ -132,7 +132,7 @@ const Contact = () => {
   ] : []
 
   return (
-    <section id="contact" className="py-24 px-4 relative overflow-hidden">
+    <section id="contact" className="py-16 md:py-24 px-4 sm:px-6 relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 right-20 w-72 h-72 bg-blue-500/5 rounded-full blur-[100px]" />
@@ -144,24 +144,24 @@ const Contact = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-12 md:mb-16"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6"
+            className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-4 md:mb-6"
           >
-            <MessageSquare size={16} className="text-cyan-400" />
-            <span className="text-cyan-400 text-sm font-medium">Let&apos;s Connect</span>
+            <MessageSquare size={14} className="text-cyan-400 md:size-4" />
+            <span className="text-cyan-400 text-xs md:text-sm font-medium">Let&apos;s Connect</span>
           </motion.div>
 
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6">
             <span className="bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
               Get In Touch
             </span>
           </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto px-2">
             Have a project in mind or want to collaborate? I&apos;d love to hear from you.
           </p>
         </motion.div>

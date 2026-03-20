@@ -16,7 +16,9 @@ import {
   Target, 
   CheckCircle2,
   ListTodo,
-  TrendingUp
+  TrendingUp,
+  Smartphone,
+  Link as LinkIcon
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -39,6 +41,18 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
     logoUrl: project?.logoUrl || '',
     githubUrl: project?.githubUrl || '',
     demoUrl: project?.demoUrl || '',
+    clientProjectUrl: project?.clientProjectUrl || '',
+    adminProjectUrl: project?.adminProjectUrl || '',
+    clientLiveUrl: project?.clientLiveUrl || '',
+    adminLiveUrl: project?.adminLiveUrl || '',
+    androidDownloadUrl: project?.androidDownloadUrl || '',
+    githubUrlEnabled: project?.githubUrlEnabled ?? true,
+    demoUrlEnabled: project?.demoUrlEnabled ?? true,
+    clientProjectUrlEnabled: project?.clientProjectUrlEnabled ?? false,
+    adminProjectUrlEnabled: project?.adminProjectUrlEnabled ?? false,
+    clientLiveUrlEnabled: project?.clientLiveUrlEnabled ?? false,
+    adminLiveUrlEnabled: project?.adminLiveUrlEnabled ?? false,
+    androidDownloadUrlEnabled: project?.androidDownloadUrlEnabled ?? false,
     featured: project?.featured || false,
     order: project?.order || 0
   })
@@ -269,24 +283,149 @@ export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) 
         {/* Links */}
         <Card>
           <h3 className="text-lg font-semibold text-white mb-4">Project Links</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="relative">
-              <Input
-                label="GitHub Repository"
-                value={formData.githubUrl}
-                onChange={(e) => handleChange('githubUrl', e.target.value)}
-                placeholder="https://github.com/..."
-              />
-              <Github className="absolute right-3 top-9 text-gray-500" size={18} />
+          <div className="space-y-4">
+            {/* Legacy Links - GitHub and Demo */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.githubUrlEnabled}
+                    onChange={(e) => handleChange('githubUrlEnabled', e.target.checked)}
+                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                  />
+                  <label className="text-sm text-gray-300">GitHub Repository</label>
+                </div>
+                <Input
+                  value={formData.githubUrl}
+                  onChange={(e) => handleChange('githubUrl', e.target.value)}
+                  placeholder="https://github.com/..."
+                  disabled={!formData.githubUrlEnabled}
+                />
+              </div>
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <input
+                    type="checkbox"
+                    checked={formData.demoUrlEnabled}
+                    onChange={(e) => handleChange('demoUrlEnabled', e.target.checked)}
+                    className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                  />
+                  <label className="text-sm text-gray-300">Live Demo URL</label>
+                </div>
+                <Input
+                  value={formData.demoUrl}
+                  onChange={(e) => handleChange('demoUrl', e.target.value)}
+                  placeholder="https://..."
+                  disabled={!formData.demoUrlEnabled}
+                />
+              </div>
             </div>
-            <div className="relative">
-              <Input
-                label="Live Demo URL"
-                value={formData.demoUrl}
-                onChange={(e) => handleChange('demoUrl', e.target.value)}
-                placeholder="https://..."
-              />
-              <ExternalLink className="absolute right-3 top-9 text-gray-500" size={18} />
+
+            {/* Client & Admin Project Links */}
+            <div className="border-t border-zinc-700 pt-4 mt-4">
+              <h4 className="text-sm font-medium text-gray-400 mb-3">Project Access Links</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.clientProjectUrlEnabled}
+                      onChange={(e) => handleChange('clientProjectUrlEnabled', e.target.checked)}
+                      className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                    />
+                    <label className="text-sm text-gray-300">Client Project Link</label>
+                  </div>
+                  <Input
+                    value={formData.clientProjectUrl}
+                    onChange={(e) => handleChange('clientProjectUrl', e.target.value)}
+                    placeholder="https://client-project-url..."
+                    disabled={!formData.clientProjectUrlEnabled}
+                  />
+                </div>
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.adminProjectUrlEnabled}
+                      onChange={(e) => handleChange('adminProjectUrlEnabled', e.target.checked)}
+                      className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                    />
+                    <label className="text-sm text-gray-300">Admin Project Link</label>
+                  </div>
+                  <Input
+                    value={formData.adminProjectUrl}
+                    onChange={(e) => handleChange('adminProjectUrl', e.target.value)}
+                    placeholder="https://admin-project-url..."
+                    disabled={!formData.adminProjectUrlEnabled}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Live Links */}
+            <div className="border-t border-zinc-700 pt-4">
+              <h4 className="text-sm font-medium text-gray-400 mb-3">Live Links</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.clientLiveUrlEnabled}
+                      onChange={(e) => handleChange('clientLiveUrlEnabled', e.target.checked)}
+                      className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                    />
+                    <label className="text-sm text-gray-300">Client Live Link</label>
+                  </div>
+                  <Input
+                    value={formData.clientLiveUrl}
+                    onChange={(e) => handleChange('clientLiveUrl', e.target.value)}
+                    placeholder="https://client-live-url..."
+                    disabled={!formData.clientLiveUrlEnabled}
+                  />
+                </div>
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.adminLiveUrlEnabled}
+                      onChange={(e) => handleChange('adminLiveUrlEnabled', e.target.checked)}
+                      className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                    />
+                    <label className="text-sm text-gray-300">Admin Live Link</label>
+                  </div>
+                  <Input
+                    value={formData.adminLiveUrl}
+                    onChange={(e) => handleChange('adminLiveUrl', e.target.value)}
+                    placeholder="https://admin-live-url..."
+                    disabled={!formData.adminLiveUrlEnabled}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Android Download */}
+            <div className="border-t border-zinc-700 pt-4">
+              <h4 className="text-sm font-medium text-gray-400 mb-3">Mobile App</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <input
+                      type="checkbox"
+                      checked={formData.androidDownloadUrlEnabled}
+                      onChange={(e) => handleChange('androidDownloadUrlEnabled', e.target.checked)}
+                      className="w-4 h-4 rounded border-zinc-700 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                    />
+                    <label className="text-sm text-gray-300">Android App Download Link</label>
+                  </div>
+                  <Input
+                    value={formData.androidDownloadUrl}
+                    onChange={(e) => handleChange('androidDownloadUrl', e.target.value)}
+                    placeholder="https://play.google.com/..."
+                    disabled={!formData.androidDownloadUrlEnabled}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </Card>

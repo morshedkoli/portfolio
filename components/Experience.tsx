@@ -43,18 +43,18 @@ const Experience = () => {
     if (!loading && experiences.length === 0) return null
 
     return (
-        <section id="experience" className="py-24 px-4 relative bg-black/50">
+        <section id="experience" className="py-16 md:py-24 px-4 sm:px-6 relative bg-black/50">
             <div className="max-w-6xl mx-auto" ref={ref}>
                 <motion.div
                     initial={{ opacity: 0, y: 50 }}
                     animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                     transition={{ duration: 0.8 }}
-                    className="text-center mb-16"
+                    className="text-center mb-12 md:mb-16"
                 >
-                    <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 glow-text">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 md:mb-6 glow-text">
                         Experience
                     </h2>
-                    <div className="h-1 w-20 bg-blue-500 mx-auto rounded-full" />
+                    <div className="h-1 w-16 md:w-20 bg-blue-500 mx-auto rounded-full" />
                 </motion.div>
 
                 <div className="relative border-l-2 border-zinc-800 ml-4 md:ml-0 md:pl-0 space-y-12">

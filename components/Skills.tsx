@@ -107,7 +107,7 @@ const Skills = () => {
     : skills.filter(s => s.category === activeCategory)
 
   return (
-    <section id="skills" className="py-24 px-4 relative overflow-hidden">
+    <section id="skills" className="py-16 md:py-24 px-4 sm:px-6 relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/5 rounded-full blur-[100px]" />
@@ -119,24 +119,24 @@ const Skills = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-16"
+          className="text-center mb-12 md:mb-16"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6"
+            className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-4 md:mb-6"
           >
-            <Sparkles size={16} className="text-blue-400" />
-            <span className="text-blue-400 text-sm font-medium">Technical Expertise</span>
+            <Sparkles size={14} className="text-blue-400 md:size-4" />
+            <span className="text-blue-400 text-xs md:text-sm font-medium">Technical Expertise</span>
           </motion.div>
 
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6">
             <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
               Skills & Technologies
             </span>
           </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+          <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto px-2">
             Here are the technologies and tools I work with to bring ideas to life.
           </p>
         </motion.div>

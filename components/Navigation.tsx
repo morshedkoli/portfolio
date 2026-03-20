@@ -54,7 +54,7 @@ const Navigation = () => {
       setScrolled(window.scrollY > 50)
       
       // Determine active section
-      const sections = ['home', 'about', 'skills', 'experience', 'education', 'projects', 'contact']
+      const sections = ['home', 'about', 'skills', 'experience', 'education', 'certifications', 'projects', 'contact']
       const scrollPosition = window.scrollY + 100
 
       for (const section of sections) {
@@ -82,6 +82,7 @@ const Navigation = () => {
     { name: 'Skills', href: '#skills', id: 'skills' },
     { name: 'Experience', href: '#experience', id: 'experience' },
     { name: 'Education', href: '#education', id: 'education' },
+    { name: 'Certifications', href: '#certifications', id: 'certifications' },
     { name: 'Projects', href: '#projects', id: 'projects' },
     { name: 'Contact', href: '#contact', id: 'contact' },
   ]
@@ -166,17 +167,6 @@ const Navigation = () => {
 
           {/* Mobile Menu Button */}
           <div className="flex items-center gap-2 md:hidden">
-            {/* Mobile Download Button */}
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={downloadResume}
-              disabled={isGenerating}
-              className="p-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white disabled:opacity-50"
-              title="Download Resume"
-            >
-              <Download size={18} className={isGenerating ? 'animate-pulse' : ''} />
-            </motion.button>
-            
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsOpen(!isOpen)}
@@ -219,7 +209,7 @@ const Navigation = () => {
               transition={{ duration: 0.3, ease: 'easeInOut' }}
               className="md:hidden overflow-hidden"
             >
-              <div className="bg-slate-900/95 backdrop-blur-xl rounded-2xl mt-2 p-3 border border-white/10 shadow-xl">
+              <div className="bg-slate-900/95 backdrop-blur-xl rounded-2xl mt-2 p-3 border border-white/10 shadow-xl max-h-[calc(100vh-80px)] overflow-y-auto">
                 {navItems.map((item, index) => (
                   <motion.button
                     key={item.name}
@@ -243,6 +233,24 @@ const Navigation = () => {
                     )}
                   </motion.button>
                 ))}
+                
+                <div className="h-px w-full bg-white/10 my-2" />
+                
+                <motion.button
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: navItems.length * 0.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    downloadResume();
+                    setIsOpen(false);
+                  }}
+                  disabled={isGenerating}
+                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium disabled:opacity-50"
+                >
+                  <Download size={18} className={isGenerating ? 'animate-pulse' : ''} />
+                  {isGenerating ? 'Generating...' : 'Download Resume'}
+                </motion.button>
               </div>
             </motion.div>
           )}

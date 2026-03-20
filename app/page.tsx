@@ -10,6 +10,7 @@ import Navigation from '@/components/Navigation'
 import Loading from '@/components/Loading'
 import Experience from '@/components/Experience'
 import Education from '@/components/Education'
+import Certifications from '@/components/Certifications'
 import Footer from '@/components/Footer'
 
 const Hero = dynamic(() => import('@/components/Hero'), { ssr: false })
@@ -26,6 +27,7 @@ export default function Home() {
         <Skills />
         <Experience />
         <Education />
+        <Certifications />
         <Projects />
         <Contact />
         <Footer />

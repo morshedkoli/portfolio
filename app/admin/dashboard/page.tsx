@@ -34,7 +34,8 @@ import {
   Briefcase,
   GraduationCap,
   Mail,
-  Pencil
+  Pencil,
+  Award
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -115,6 +116,16 @@ interface Education {
   order: number
 }
 
+interface Certification {
+  id?: string
+  name: string
+  issuer: string
+  date: string
+  url?: string
+  description?: string
+  order: number
+}
+
 interface ContactMessage {
   id: string
   name: string
@@ -135,6 +146,7 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout, mobileMenuOpen, setMob
     { id: 'skills', label: 'Skills', icon: Zap },
     { id: 'experience', label: 'Experience', icon: Briefcase },
     { id: 'education', label: 'Education', icon: GraduationCap },
+    { id: 'certifications', label: 'Certifications', icon: Award },
     { id: 'messages', label: 'Messages', icon: Mail, badge: unreadCount },
     { id: 'settings', label: 'Settings', icon: Settings },
   ]
@@ -211,15 +223,15 @@ const StatCard = ({ title, value, icon: Icon, color, delay }: any) => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
-    className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl hover:border-zinc-700 transition-colors group"
+    className="bg-zinc-900 border border-zinc-800 p-4 sm:p-6 rounded-xl hover:border-zinc-700 transition-colors group"
   >
-    <div className="flex items-start justify-between">
-      <div>
-        <p className="text-zinc-500 text-sm font-medium mb-1">{title}</p>
-        <h3 className="text-2xl font-bold text-white group-hover:scale-105 transition-transform origin-left">{value}</h3>
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <p className="text-zinc-500 text-xs sm:text-sm font-medium mb-1 truncate">{title}</p>
+        <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:scale-105 transition-transform origin-left truncate">{value}</h3>
       </div>
-      <div className={`p-3 rounded-lg ${color} bg-opacity-10`}>
-        <Icon size={24} className={color.replace('bg-', 'text-')} />
+      <div className={`p-2 sm:p-3 rounded-lg ${color} bg-opacity-10 shrink-0`}>
+        <Icon size={20} className={`${color.replace('bg-', 'text-')} sm:size-6`} />
       </div>
     </div>
   </motion.div>
@@ -335,6 +347,8 @@ export default function AdminDashboard() {
   const [editingExperience, setEditingExperience] = useState<Experience | null>(null)
   const [educations, setEducations] = useState<Education[]>([])
   const [editingEducation, setEditingEducation] = useState<Education | null>(null)
+  const [certifications, setCertifications] = useState<Certification[]>([])
+  const [editingCertification, setEditingCertification] = useState<Certification | null>(null)
   const [messages, setMessages] = useState<ContactMessage[]>([])
   const [expandedMessages, setExpandedMessages] = useState<Record<string, boolean>>({})
   const [settings, setSettings] = useState<Record<string, any>>({})
@@ -363,12 +377,13 @@ export default function AdminDashboard() {
 
   const fetchData = async () => {
     try {
-      const [projectsRes, profileRes, skillsRes, expRes, eduRes, msgRes, settingsRes] = await Promise.all([
+      const [projectsRes, profileRes, skillsRes, expRes, eduRes, certRes, msgRes, settingsRes] = await Promise.all([
         fetch('/api/projects'),
         fetch('/api/profile'),
         fetch('/api/skills'),
         fetch('/api/experience'),
         fetch('/api/education'),
+        fetch('/api/certifications'),
         fetch('/api/contact'),
         fetch('/api/settings')
       ])
@@ -378,6 +393,7 @@ export default function AdminDashboard() {
       if (skillsRes.status !== 404 && skillsRes.ok) setSkills(await skillsRes.json())
       if (expRes.status !== 404 && expRes.ok) setExperiences(await expRes.json())
       if (eduRes.status !== 404 && eduRes.ok) setEducations(await eduRes.json())
+      if (certRes.status !== 404 && certRes.ok) setCertifications(await certRes.json())
       if (msgRes.status !== 404 && msgRes.ok) setMessages(await msgRes.json())
       if (settingsRes.status !== 404 && settingsRes.ok) {
         const s = await settingsRes.json()
@@ -515,6 +531,52 @@ export default function AdminDashboard() {
     } catch (error) {
       console.error('Error deleting education:', error)
       toast.error('Could not delete education.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSaveCertification = async () => {
+    if (!editingCertification) return
+    setLoading(true)
+    try {
+      const url = editingCertification.id ? `/api/certifications` : '/api/certifications'
+      const method = editingCertification.id ? 'PUT' : 'POST'
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editingCertification),
+      })
+      if (response.ok) {
+        setEditingCertification(null)
+        await fetchData()
+        toast.success('Certification saved.')
+      } else {
+        toast.error('Could not save certification.')
+      }
+    } catch (error) {
+      console.error('Error saving certification:', error)
+      toast.error('Could not save certification.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const deleteCertification = async (id: string) => {
+    const confirmed = await confirmWithToast('Delete this certification?')
+    if (!confirmed) return
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/certifications?id=${id}`, { method: 'DELETE' })
+      if (response.ok) {
+        await fetchData()
+        toast.success('Certification deleted.')
+      } else {
+        toast.error('Could not delete certification.')
+      }
+    } catch (error) {
+      console.error('Error deleting certification:', error)
+      toast.error('Could not delete certification.')
     } finally {
       setLoading(false)
     }
@@ -736,7 +798,7 @@ export default function AdminDashboard() {
 
       {/* Main Content Area */}
       <main className="md:ml-64 min-h-screen transition-all duration-300">
-        <header className="sticky top-0 z-30 backdrop-blur-md px-6 py-4 flex items-center justify-between bg-black/80 border-b border-zinc-800">
+        <header className="sticky top-0 z-30 backdrop-blur-md px-4 md:px-6 py-3 md:py-4 flex items-center justify-between bg-black/80 border-b border-zinc-800">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileMenuOpen(true)}
@@ -769,18 +831,19 @@ export default function AdminDashboard() {
           )}
         </header>
 
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-4 md:p-6 max-w-7xl mx-auto">
 
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <StatCard title="Total Projects" value={projects.length} icon={FileText} color="bg-blue-500" delay={0} />
                 <StatCard title="Featured" value={projects.filter(p => p.featured).length} icon={Eye} color="bg-green-500" delay={0.05} />
                 <StatCard title="Skills" value={skills.length} icon={Zap} color="bg-orange-500" delay={0.1} />
                 <StatCard title="Experience" value={experiences.length} icon={Briefcase} color="bg-cyan-500" delay={0.15} />
                 <StatCard title="Education" value={educations.length} icon={GraduationCap} color="bg-indigo-500" delay={0.2} />
-                <StatCard title="Unread Messages" value={unreadCount} icon={Mail} color="bg-red-500" delay={0.25} />
+                <StatCard title="Certifications" value={certifications.length} icon={Award} color="bg-yellow-500" delay={0.25} />
+                <StatCard title="Unread Messages" value={unreadCount} icon={Mail} color="bg-red-500" delay={0.3} />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
@@ -817,6 +880,7 @@ export default function AdminDashboard() {
                       { tab: 'profile', icon: Users, label: 'Profile', color: 'text-purple-500' },
                       { tab: 'experience', icon: Briefcase, label: 'Experience', color: 'text-cyan-500' },
                       { tab: 'education', icon: GraduationCap, label: 'Education', color: 'text-indigo-500' },
+                      { tab: 'certifications', icon: Award, label: 'Certifications', color: 'text-yellow-500' },
                       { tab: 'messages', icon: Mail, label: 'Messages', color: 'text-red-500' },
                     ].map(({ tab, icon: Icon, label, color }) => (
                       <button key={tab} onClick={() => setActiveTab(tab)} className="p-3 bg-zinc-950 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors text-left flex flex-col gap-2">
@@ -1676,8 +1740,8 @@ export default function AdminDashboard() {
                     layout
                     className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 group hover:border-zinc-700 transition-colors"
                   >
-                    <div className="flex justify-between items-start">
-                      <div>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div className="w-full">
                         <h4 className="text-xl font-bold text-white mb-1">{exp.position}</h4>
                         <h5 className="text-lg text-blue-400 mb-2">{exp.company}</h5>
                         <div className="flex items-center gap-4 text-sm text-zinc-500 mb-4">
@@ -1810,8 +1874,8 @@ export default function AdminDashboard() {
                     layout
                     className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 group hover:border-zinc-700 transition-colors"
                   >
-                    <div className="flex justify-between items-start">
-                      <div>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div className="w-full">
                         <h4 className="text-xl font-bold text-white mb-1">{edu.degree} {edu.field && `in ${edu.field}`}</h4>
                         <h5 className="text-lg text-blue-400 mb-2">{edu.institution}</h5>
                         <div className="flex items-center gap-4 text-sm text-zinc-500 mb-4">
@@ -1823,6 +1887,125 @@ export default function AdminDashboard() {
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => setEditingEducation(edu)} className="p-2 hover:bg-zinc-800 rounded-lg text-blue-400"><Edit size={16} /></button>
                         <button onClick={() => deleteEducation(edu.id!)} className="p-2 hover:bg-zinc-800 rounded-lg text-red-400"><Trash2 size={16} /></button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* CERTIFICATIONS TAB */}
+          {activeTab === 'certifications' && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold">Certifications</h3>
+                {!editingCertification && (
+                  <button
+                    onClick={() => setEditingCertification({
+                      name: '', issuer: '', description: '',
+                      date: '', order: certifications.length
+                    })}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
+                  >
+                    <Plus size={16} /> Add Certification
+                  </button>
+                )}
+              </div>
+
+              {editingCertification && (
+                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 mb-6">
+                  <h3 className="font-semibold mb-4">{editingCertification.id ? 'Edit Certification' : 'Add New Certification'}</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-zinc-500 mb-1 block">Certification Name</label>
+                        <input
+                          value={editingCertification.name}
+                          onChange={e => setEditingCertification({ ...editingCertification, name: e.target.value })}
+                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          placeholder="e.g. AWS Certified Solutions Architect"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-zinc-500 mb-1 block">Issuing Organization</label>
+                        <input
+                          value={editingCertification.issuer}
+                          onChange={e => setEditingCertification({ ...editingCertification, issuer: e.target.value })}
+                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          placeholder="e.g. Amazon Web Services"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs text-zinc-500 mb-1 block">Description</label>
+                      <textarea
+                        value={editingCertification.description || ''}
+                        onChange={e => setEditingCertification({ ...editingCertification, description: e.target.value })}
+                        className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500 min-h-[100px]"
+                        placeholder="Describe what you learned or achieved..."
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs text-zinc-500 mb-1 block">Issue Date</label>
+                        <input
+                          type="date"
+                          value={editingCertification.date ? new Date(editingCertification.date).toISOString().split('T')[0] : ''}
+                          onChange={e => setEditingCertification({ ...editingCertification, date: e.target.value })}
+                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-zinc-500 mb-1 block">Credential URL (optional)</label>
+                        <input
+                          type="url"
+                          value={editingCertification.url || ''}
+                          onChange={e => setEditingCertification({ ...editingCertification, url: e.target.value })}
+                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-lg outline-none focus:border-blue-500"
+                          placeholder="https://..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-6 flex justify-end gap-3">
+                    <button onClick={() => setEditingCertification(null)} className="px-4 py-2 text-zinc-400 hover:text-white text-sm">Cancel</button>
+                    <button onClick={handleSaveCertification} disabled={loading} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm flex items-center gap-2">
+                      <Save size={16} /> Save Certification
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+              <div className="space-y-4">
+                {certifications.map((cert) => (
+                  <motion.div
+                    key={cert.id}
+                    layout
+                    className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 group hover:border-zinc-700 transition-colors"
+                  >
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <div className="w-full">
+                        <h4 className="text-xl font-bold text-white mb-1">{cert.name}</h4>
+                        <h5 className="text-lg text-yellow-400 mb-2">{cert.issuer}</h5>
+                        <div className="flex items-center gap-4 text-sm text-zinc-500 mb-4">
+                          <span>Issued: {new Date(cert.date).toLocaleDateString()}</span>
+                        </div>
+                        {cert.description && <p className="text-zinc-300 whitespace-pre-line mb-4">{cert.description}</p>}
+                        {cert.url && (
+                          <a
+                            href={cert.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 text-sm"
+                          >
+                            <Eye size={14} /> View Credential
+                          </a>
+                        )}
+                      </div>
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => setEditingCertification(cert)} className="p-2 hover:bg-zinc-800 rounded-lg text-blue-400"><Edit size={16} /></button>
+                        <button onClick={() => deleteCertification(cert.id!)} className="p-2 hover:bg-zinc-800 rounded-lg text-red-400"><Trash2 size={16} /></button>
                       </div>
                     </div>
                   </motion.div>

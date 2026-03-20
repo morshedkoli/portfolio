@@ -44,18 +44,18 @@ const Education = () => {
     if (!loading && educations.length === 0) return null
 
     return (
-        <section id="education" className="py-24 px-4 relative">
+        <section id="education" className="py-16 md:py-24 px-4 sm:px-6 relative">
             <div className="max-w-6xl mx-auto" ref={ref}>
                 <motion.div
                     initial={{ opacity: 0, y: 50 }}
                     animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                     transition={{ duration: 0.8 }}
-                    className="text-center mb-16"
+                    className="text-center mb-12 md:mb-16"
                 >
-                    <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 glow-text">
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 md:mb-6 glow-text">
                         Education
                     </h2>
-                    <div className="h-1 w-20 bg-purple-500 mx-auto rounded-full" />
+                    <div className="h-1 w-16 md:w-20 bg-purple-500 mx-auto rounded-full" />
                 </motion.div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

@@ -166,7 +166,7 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
 
                 {/* Links */}
                 <div className="flex items-center gap-3">
-                  {project.demoUrl && (
+                  {project.demoUrlEnabled !== false && project.demoUrl && (
                     <a
                       href={project.demoUrl}
                       target="_blank"
@@ -177,7 +177,7 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
                       Live Demo
                     </a>
                   )}
-                  {project.githubUrl && (
+                  {project.githubUrlEnabled !== false && project.githubUrl && (
                     <a
                       href={project.githubUrl}
                       target="_blank"
@@ -186,6 +186,61 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
                     >
                       <Github size={18} />
                       Source Code
+                    </a>
+                  )}
+                  {project.clientLiveUrlEnabled && project.clientLiveUrl && (
+                    <a
+                      href={project.clientLiveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-lg transition-colors"
+                    >
+                      <ExternalLink size={18} />
+                      Client Live
+                    </a>
+                  )}
+                  {project.adminLiveUrlEnabled && project.adminLiveUrl && (
+                    <a
+                      href={project.adminLiveUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 rounded-lg transition-colors"
+                    >
+                      <ExternalLink size={18} />
+                      Admin Live
+                    </a>
+                  )}
+                  {project.androidDownloadUrlEnabled && project.androidDownloadUrl && (
+                    <a
+                      href={project.androidDownloadUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg transition-colors"
+                    >
+                      <ExternalLink size={18} />
+                      Android App
+                    </a>
+                  )}
+                  {project.clientProjectUrlEnabled && project.clientProjectUrl && (
+                    <a
+                      href={project.clientProjectUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+                    >
+                      <ExternalLink size={18} />
+                      Client Project
+                    </a>
+                  )}
+                  {project.adminProjectUrlEnabled && project.adminProjectUrl && (
+                    <a
+                      href={project.adminProjectUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors"
+                    >
+                      <ExternalLink size={18} />
+                      Admin Project
                     </a>
                   )}
                 </div>
