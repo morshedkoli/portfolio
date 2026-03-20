@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import PDFDocument from 'pdfkit'
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 
 export async function GET() {
   try {
@@ -12,128 +12,145 @@ export async function GET() {
       prisma.education.findMany({ orderBy: { order: 'asc' } })
     ])
 
-    // Create PDF
-    const doc = new PDFDocument({ margin: 50 })
-    const chunks: Buffer[] = []
+    // Create PDF document
+    const pdfDoc = await PDFDocument.create()
+    const page = pdfDoc.addPage([612, 792]) // Letter size
+    const { height } = page.getSize()
 
-    doc.on('data', (chunk) => chunks.push(chunk))
+    // Embed fonts
+    const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica)
+    const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+
+    // Colors
+    const blue = rgb(0.118, 0.251, 0.686) // #1e40af
+    const darkGray = rgb(0.235, 0.235, 0.235) // #3c3c3c
+    const medGray = rgb(0.4, 0.4, 0.4) // #666666
+    const lightGray = rgb(0.314, 0.314, 0.314) // #505050
+
+    let y = height - 50
+    const margin = 50
+    const pageWidth = 612 - margin * 2
+
+    // Helper function to draw centered text
+    const drawCenteredText = (text: string, font: typeof helvetica, size: number, color: typeof blue) => {
+      const textWidth = font.widthOfTextAtSize(text, size)
+      page.drawText(text, {
+        x: (612 - textWidth) / 2,
+        y,
+        size,
+        font,
+        color,
+      })
+      y -= size + 4
+    }
+
+    // Helper function to draw text
+    const drawText = (text: string, font: typeof helvetica, size: number, color: typeof blue, x = margin) => {
+      page.drawText(text, { x, y, size, font, color })
+      y -= size + 4
+    }
 
     // Header - Name
-    doc.fontSize(24)
-       .fillColor('#1e40af')
-       .font('Helvetica-Bold')
-       .text(profile?.name || 'Resume', { align: 'center' })
-       .moveDown(0.3)
+    drawCenteredText(profile?.name || 'Resume', helveticaBold, 24, blue)
+    y -= 4
 
     // Title
-    doc.fontSize(14)
-       .fillColor('#666666')
-       .font('Helvetica')
-       .text(profile?.title || '', { align: 'center' })
-       .moveDown(0.5)
+    if (profile?.title) {
+      drawCenteredText(profile.title, helvetica, 14, medGray)
+    }
+    y -= 4
 
     // Contact Info
-    const contactParts = [
-      profile?.email,
-      profile?.phone,
-      profile?.location
-    ].filter(Boolean)
-    
-    doc.fontSize(10)
-       .fillColor('#505050')
-       .text(contactParts.join('  |  '), { align: 'center' })
-       .moveDown(1)
+    const contactParts = [profile?.email, profile?.phone, profile?.location].filter(Boolean)
+    if (contactParts.length > 0) {
+      drawCenteredText(contactParts.join('  |  '), helvetica, 10, lightGray)
+    }
+    y -= 8
 
     // Divider
-    doc.strokeColor('#cccccc')
-       .lineWidth(1)
-       .moveTo(50, doc.y)
-       .lineTo(doc.page.width - 50, doc.y)
-       .stroke()
-       .moveDown(1)
+    page.drawLine({
+      start: { x: margin, y },
+      end: { x: 612 - margin, y },
+      thickness: 1,
+      color: rgb(0.8, 0.8, 0.8),
+    })
+    y -= 20
+
+    // Helper to wrap and draw multi-line text
+    const drawWrappedText = (text: string, font: typeof helvetica, size: number, color: typeof blue) => {
+      // Clean text: replace newlines with spaces, normalize whitespace
+      const cleanText = text.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim()
+      const words = cleanText.split(' ')
+      let line = ''
+      for (const word of words) {
+        const testLine = line ? `${line} ${word}` : word
+        if (font.widthOfTextAtSize(testLine, size) > pageWidth) {
+          drawText(line, font, size, color)
+          line = word
+        } else {
+          line = testLine
+        }
+      }
+      if (line) drawText(line, font, size, color)
+    }
 
     // Summary
     if (profile?.description) {
-      doc.fontSize(12)
-         .fillColor('#1e40af')
-         .font('Helvetica-Bold')
-         .text('SUMMARY')
-         .moveDown(0.3)
-
-      doc.fontSize(10)
-         .fillColor('#3c3c3c')
-         .font('Helvetica')
-         .text(profile.description)
-         .moveDown(1)
+      drawText('SUMMARY', helveticaBold, 12, blue)
+      y -= 4
+      drawWrappedText(profile.description, helvetica, 10, darkGray)
+      y -= 12
     }
 
     // Experience
     if (experiences.length > 0) {
-      doc.fontSize(12)
-         .fillColor('#1e40af')
-         .font('Helvetica-Bold')
-         .text('EXPERIENCE')
-         .moveDown(0.3)
+      drawText('EXPERIENCE', helveticaBold, 12, blue)
+      y -= 4
 
       for (const exp of experiences) {
         const startDate = new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
         const endDate = exp.current ? 'Present' : exp.endDate ? new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''
+        const dateRange = `${startDate} - ${endDate}`
 
-        doc.fontSize(11)
-           .fillColor('#282828')
-           .font('Helvetica-Bold')
-           .text(exp.position, { continued: true })
-           .font('Helvetica')
-           .fillColor('#666666')
-           .text(`  ${startDate} - ${endDate}`, { align: 'right' })
+        // Position and date on same line
+        drawText(exp.position, helveticaBold, 11, rgb(0.157, 0.157, 0.157))
+        const dateWidth = helvetica.widthOfTextAtSize(dateRange, 10)
+        page.drawText(dateRange, { x: 612 - margin - dateWidth, y: y + 15, size: 10, font: helvetica, color: medGray })
 
-        doc.fontSize(10)
-           .fillColor('#505050')
-           .text(exp.company)
-           .moveDown(0.2)
+        drawText(exp.company, helvetica, 10, lightGray)
+        y -= 2
 
-        doc.fillColor('#3c3c3c')
-           .text(exp.description)
-           .moveDown(0.8)
+        drawWrappedText(exp.description, helvetica, 10, darkGray)
+        y -= 10
       }
-      doc.moveDown(0.5)
+      y -= 8
     }
 
     // Education
     if (educations.length > 0) {
-      doc.fontSize(12)
-         .fillColor('#1e40af')
-         .font('Helvetica-Bold')
-         .text('EDUCATION')
-         .moveDown(0.3)
+      drawText('EDUCATION', helveticaBold, 12, blue)
+      y -= 4
 
       for (const edu of educations) {
         const startYear = new Date(edu.startDate).getFullYear()
         const endYear = edu.endDate ? new Date(edu.endDate).getFullYear() : 'Present'
+        const dateRange = `${startYear} - ${endYear}`
+        const degree = `${edu.degree}${edu.field ? ` in ${edu.field}` : ''}`
 
-        doc.fontSize(11)
-           .fillColor('#282828')
-           .font('Helvetica-Bold')
-           .text(`${edu.degree}${edu.field ? ` in ${edu.field}` : ''}`, { continued: true })
-           .font('Helvetica')
-           .fillColor('#666666')
-           .text(`  ${startYear} - ${endYear}`, { align: 'right' })
+        drawText(degree, helveticaBold, 11, rgb(0.157, 0.157, 0.157))
+        const dateWidth = helvetica.widthOfTextAtSize(dateRange, 10)
+        page.drawText(dateRange, { x: 612 - margin - dateWidth, y: y + 15, size: 10, font: helvetica, color: medGray })
 
-        doc.fontSize(10)
-           .fillColor('#505050')
-           .text(edu.institution)
-           .moveDown(0.5)
+        drawText(edu.institution, helvetica, 10, lightGray)
+        y -= 8
       }
-      doc.moveDown(0.5)
+      y -= 8
     }
 
     // Skills
     if (skills.length > 0) {
-      doc.fontSize(12)
-         .fillColor('#1e40af')
-         .font('Helvetica-Bold')
-         .text('SKILLS')
-         .moveDown(0.3)
+      drawText('SKILLS', helveticaBold, 12, blue)
+      y -= 4
 
       // Group skills by category
       const skillsByCategory = skills.reduce((acc, skill) => {
@@ -143,30 +160,21 @@ export async function GET() {
       }, {} as Record<string, string[]>)
 
       for (const [category, skillNames] of Object.entries(skillsByCategory)) {
-        doc.fontSize(10)
-           .fillColor('#3c3c3c')
-           .font('Helvetica-Bold')
-           .text(`${category.charAt(0).toUpperCase() + category.slice(1)}: `, { continued: true })
-           .font('Helvetica')
-           .fillColor('#505050')
-           .text(skillNames.join(', '))
-           .moveDown(0.2)
+        const categoryLabel = `${category.charAt(0).toUpperCase() + category.slice(1)}: `
+        const skillsText = skillNames.join(', ')
+
+        page.drawText(categoryLabel, { x: margin, y, size: 10, font: helveticaBold, color: darkGray })
+        const labelWidth = helveticaBold.widthOfTextAtSize(categoryLabel, 10)
+        page.drawText(skillsText, { x: margin + labelWidth, y, size: 10, font: helvetica, color: lightGray })
+        y -= 14
       }
     }
 
-    // End document
-    doc.end()
-
-    // Wait for PDF generation to complete
-    const pdfBuffer = await new Promise<Buffer>((resolve) => {
-      doc.on('end', () => {
-        resolve(Buffer.concat(chunks))
-      })
-    })
-
+    // Generate PDF bytes
+    const pdfBytes = await pdfDoc.save()
     const filename = `${(profile?.name || 'resume').toLowerCase().replace(/\s+/g, '-')}-resume.pdf`
 
-    return new NextResponse(new Uint8Array(pdfBuffer), {
+    return new NextResponse(pdfBytes, {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,
