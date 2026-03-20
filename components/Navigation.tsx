@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Menu, X, Sparkles } from 'lucide-react'
+import { Menu, X, Sparkles, Download } from 'lucide-react'
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState('home')
   const [siteName, setSiteName] = useState('')
+  const [isGenerating, setIsGenerating] = useState(false)
 
   useEffect(() => {
     // Fetch site name from settings
@@ -25,6 +26,28 @@ const Navigation = () => {
     }
     fetchSettings()
   }, [])
+
+  const downloadResume = async () => {
+    setIsGenerating(true)
+    try {
+      const response = await fetch('/api/resume')
+      if (!response.ok) throw new Error('Failed to generate resume')
+      
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'resume.pdf'
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Failed to download resume:', error)
+    } finally {
+      setIsGenerating(false)
+    }
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -102,7 +125,7 @@ const Navigation = () => {
           </motion.div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center gap-3">
             <div className="flex items-center gap-1 bg-white/5 backdrop-blur-sm rounded-full p-1.5 border border-white/10">
               {navItems.map((item) => (
                 <motion.button
@@ -127,10 +150,33 @@ const Navigation = () => {
                 </motion.button>
               ))}
             </div>
+            
+            {/* Download Resume Button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={downloadResume}
+              disabled={isGenerating}
+              className="p-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 disabled:opacity-50"
+              title="Download Resume"
+            >
+              <Download size={18} className={isGenerating ? 'animate-pulse' : ''} />
+            </motion.button>
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div className="flex items-center gap-2 md:hidden">
+            {/* Mobile Download Button */}
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={downloadResume}
+              disabled={isGenerating}
+              className="p-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white disabled:opacity-50"
+              title="Download Resume"
+            >
+              <Download size={18} className={isGenerating ? 'animate-pulse' : ''} />
+            </motion.button>
+            
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsOpen(!isOpen)}

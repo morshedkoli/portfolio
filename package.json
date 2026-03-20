@@ -19,6 +19,7 @@
     "lucide-react": "^0.294.0",
     "mongodb": "^6.3.0",
     "next": "^16.2.0",
+    "pdfkit": "^0.18.0",
     "postcss": "^8.4.32",
     "prisma": "^5.7.1",
     "react": "^18",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/pdfkit": "^0.17.5",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/three": "^0.158.3",
