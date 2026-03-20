@@ -64,7 +64,7 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
   const addModule = () => {
     if (!newModule.name.trim()) return
 
-    const module: ModuleItemType = {
+    const moduleItem: ModuleItemType = {
       id: generateId(),
       name: newModule.name,
       description: newModule.description,
@@ -73,9 +73,9 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
       order: modules.length
     }
 
-    onChange([...modules, module])
+    onChange([...modules, moduleItem])
     setNewModule({ name: '', description: '' })
-    setExpandedModules(prev => new Set(prev).add(module.id))
+    setExpandedModules(prev => new Set(prev).add(moduleItem.id))
   }
 
   const updateModule = (id: string, updates: Partial<ModuleItemType>) => {

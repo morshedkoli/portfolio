@@ -174,7 +174,7 @@ export async function GET() {
     const pdfBytes = await pdfDoc.save()
     const filename = `${(profile?.name || 'resume').toLowerCase().replace(/\s+/g, '-')}-resume.pdf`
 
-    return new NextResponse(pdfBytes, {
+    return new NextResponse(Buffer.from(pdfBytes), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${filename}"`,

@@ -91,21 +91,21 @@ function generateProjectMarkdown(project: any): string {
     lines.push('## 📦 Modules & Tasks')
     lines.push('')
     
-    for (const module of project.modules) {
-      lines.push(`### ${module.name}`)
-      if (module.description) {
-        lines.push(module.description)
+    for (const mod of project.modules) {
+      lines.push(`### ${mod.name}`)
+      if (mod.description) {
+        lines.push(mod.description)
       }
-      lines.push(`**Status:** ${module.status}`)
+      lines.push(`**Status:** ${mod.status}`)
       lines.push('')
       
-      if (module.tasks && module.tasks.length > 0) {
+      if (mod.tasks && mod.tasks.length > 0) {
         lines.push('#### Tasks')
         lines.push('')
         lines.push('| Task | Status | Priority | Assigned To |')
         lines.push('|------|--------|----------|-------------|')
         
-        for (const task of module.tasks) {
+        for (const task of mod.tasks) {
           const status = task.status || 'backlog'
           const priority = task.priority || 'medium'
           const assignee = task.assignedTo || '-'
