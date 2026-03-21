@@ -37,7 +37,7 @@ const Navigation = () => {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'resume.pdf'
+      a.download = 'Morshed_al_main_resume.pdf'
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
