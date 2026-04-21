@@ -2258,7 +2258,9 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
 
           {/* SETTINGS TAB */}
           {activeTab === 'settings' && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto space-y-6">
+
+              {/* ── Site Settings Card ── */}
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden">
                 <div className="p-6 border-b border-white/10 flex justify-between items-center">
                   <h3 className="font-semibold text-lg">Site Settings</h3>
@@ -2322,27 +2324,6 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                       <p className="p-2 text-gray-300">{settings.copyrightText || 'Not set'}</p>
                     )}
                   </div>
-                  <div className="space-y-2 border-t border-white/10 pt-4 mt-4">
-                    <label className="text-xs font-medium text-blue-400 uppercase tracking-wider block mb-2">AI Configuration</label>
-                    <div className="space-y-4">
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Google AI API Key</label>
-                        {editingSettings ? (
-                          <input type="password" value={settingsForm.googleAiKey} onChange={e => setSettingsForm({ ...settingsForm, googleAiKey: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="AIzaSy..." />
-                        ) : (
-                          <p className="p-2 text-gray-300">{settings.googleAiKey ? '••••••••••••••••' : 'Not set'}</p>
-                        )}
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">OpenRouter API Key</label>
-                        {editingSettings ? (
-                          <input type="password" value={settingsForm.openRouterKey} onChange={e => setSettingsForm({ ...settingsForm, openRouterKey: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="sk-or-v1-..." />
-                        ) : (
-                          <p className="p-2 text-gray-300">{settings.openRouterKey ? '••••••••••••••••' : 'Not set'}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
                   <div className="flex items-center justify-between p-4 bg-black/40 rounded-lg border border-white/10">
                     <div>
                       <label className="text-sm font-medium text-gray-300">Maintenance Mode</label>
@@ -2358,8 +2339,84 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                   </div>
                 </div>
               </div>
+
+              {/* ── AI Configuration Card ── */}
+              <div className="bg-white/5 backdrop-blur-md border border-blue-500/20 rounded-xl overflow-hidden">
+                <div className="p-6 border-b border-white/10 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />
+                      AI Configuration
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">API keys for AI-powered content generation across the admin panel</p>
+                  </div>
+                  {!editingSettings ? (
+                    <button onClick={() => setEditingSettings(true)} className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 text-blue-300 rounded-lg text-sm"><Pencil size={14} /> Edit</button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button onClick={() => setEditingSettings(false)} className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-gray-300 rounded-lg text-sm">Cancel</button>
+                      <button onClick={handleSaveSettings} disabled={loading} className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm disabled:opacity-50">
+                        {loading ? 'Saving...' : 'Save'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <div className="p-6 space-y-5">
+                  {/* Google AI */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-5 h-5 rounded bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-[10px] font-bold text-blue-400">G</span>
+                      <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Google AI API Key</label>
+                      <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-green-500/10 border border-green-500/20 text-green-400 font-medium">Primary</span>
+                    </div>
+                    {editingSettings ? (
+                      <input
+                        type="password"
+                        value={settingsForm.googleAiKey}
+                        onChange={e => setSettingsForm({ ...settingsForm, googleAiKey: e.target.value })}
+                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none font-mono text-sm"
+                        placeholder="AIzaSy..."
+                      />
+                    ) : (
+                      <div className="flex items-center gap-3 px-3 py-2 bg-black/30 border border-white/10 rounded-lg">
+                        <span className="font-mono text-sm text-gray-300">{settings.googleAiKey ? '••••••••••••••••' : 'Not configured'}</span>
+                        {settings.googleAiKey && <span className="ml-auto text-[10px] text-green-400">✓ Set</span>}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* OpenRouter AI */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="w-5 h-5 rounded bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-[10px] font-bold text-purple-400">OR</span>
+                      <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">OpenRouter API Key</label>
+                      <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20 text-purple-400 font-medium">Fallback</span>
+                    </div>
+                    {editingSettings ? (
+                      <input
+                        type="password"
+                        value={settingsForm.openRouterKey}
+                        onChange={e => setSettingsForm({ ...settingsForm, openRouterKey: e.target.value })}
+                        className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none font-mono text-sm"
+                        placeholder="sk-or-v1-..."
+                      />
+                    ) : (
+                      <div className="flex items-center gap-3 px-3 py-2 bg-black/30 border border-white/10 rounded-lg">
+                        <span className="font-mono text-sm text-gray-300">{settings.openRouterKey ? '••••••••••••••••' : 'Not configured'}</span>
+                        {settings.openRouterKey && <span className="ml-auto text-[10px] text-green-400">✓ Set</span>}
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-gray-600 pt-1">
+                    Google AI is used as the primary model. OpenRouter is the fallback when Google AI is unavailable or quota exceeded.
+                  </p>
+                </div>
+              </div>
+
             </motion.div>
           )}
+
 
         </div>
       </main>
