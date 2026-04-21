@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
-import { TabPanel } from '@/components/ui/Tabs'
 import { Button } from '@/components/ui/FormElements'
 import { SaveBar } from './SaveBar'
 import { EditorSidebar, SidebarItem } from './EditorSidebar'
@@ -12,42 +11,24 @@ import { OverviewTab, OverviewTabHandle } from './tabs/OverviewTab'
 import { FeaturesTab } from './tabs/FeaturesTab'
 import { ModulesTab } from './tabs/ModulesTab'
 import { TechStackTab } from './tabs/TechStackTab'
-import { FlowTab } from './tabs/FlowTab'
-import { ApiStructureTab } from './tabs/ApiStructureTab'
-import { DatabaseTab } from './tabs/DatabaseTab'
-import { DeploymentTab } from './tabs/DeploymentTab'
 import {
   updateProject,
   updateProjectFeatures,
   updateProjectModules,
-  updateProjectFlow,
   updateProjectTechStack,
-  updateProjectApiStructure,
-  updateProjectDatabaseDesign,
-  updateProjectDeployment,
 } from '@/lib/actions/project-actions'
 import {
   FeatureItemType,
   ModuleItemType,
   TechStackItemType,
-  FlowNodeDataType,
-  FlowEdgeDataType,
-  ApiEndpointType,
-  DatabaseCollectionType,
-  DeploymentInfoType,
 } from '@/lib/validations/project'
 import {
   LayoutDashboard,
   Target,
   FolderKanban,
   Cpu,
-  Workflow,
-  Code,
-  Database,
-  Rocket,
   FileDown,
   CheckCircle2,
-  Sparkles,
 } from 'lucide-react'
 
 interface ProjectEditorProps {
@@ -74,11 +55,6 @@ export function ProjectEditor({ project }: ProjectEditorProps) {
   const [features, setFeatures] = useState<FeatureItemType[]>(project?.features || [])
   const [modules, setModules] = useState<ModuleItemType[]>(project?.modules || [])
   const [techStack, setTechStack] = useState<TechStackItemType[]>(project?.techStack || [])
-  const [flowNodes, setFlowNodes] = useState<FlowNodeDataType[]>(project?.flowDiagram?.nodes || [])
-  const [flowEdges, setFlowEdges] = useState<FlowEdgeDataType[]>(project?.flowDiagram?.edges || [])
-  const [apiStructure, setApiStructure] = useState<ApiEndpointType[]>(project?.apiStructure || [])
-  const [databaseDesign, setDatabaseDesign] = useState<DatabaseCollectionType[]>(project?.databaseDesign || [])
-  const [deployment, setDeployment] = useState<DeploymentInfoType | null>(project?.deployment || null)
 
   // Helpers
   const markDirty = (section: string) =>
@@ -149,64 +125,13 @@ export function ProjectEditor({ project }: ProjectEditorProps) {
     finally { setIsSaving(false) }
   }
 
-  const handleFlowChange = useCallback((nodes: FlowNodeDataType[], edges: FlowEdgeDataType[]) => {
-    setFlowNodes(nodes)
-    setFlowEdges(edges)
-    markDirty('flow')
-  }, [])
-
-  const saveFlow = async () => {
-    setIsSaving(true)
-    try {
-      const result = await updateProjectFlow({ projectId: project.id, flowDiagram: { nodes: flowNodes, edges: flowEdges } })
-      if (result.success) { setLastSaved(new Date()); markClean('flow'); toast.success('Flow diagram saved') }
-      else toast.error(result.error || 'Failed to save flow diagram')
-    } catch { toast.error('An error occurred') }
-    finally { setIsSaving(false) }
-  }
-
-  const saveApi = async () => {
-    setIsSaving(true)
-    try {
-      const result = await updateProjectApiStructure({ projectId: project.id, apiStructure })
-      if (result.success) { setLastSaved(new Date()); markClean('api'); toast.success('API structure saved') }
-      else toast.error(result.error || 'Failed to save API structure')
-    } catch { toast.error('An error occurred') }
-    finally { setIsSaving(false) }
-  }
-
-  const saveDatabase = async () => {
-    setIsSaving(true)
-    try {
-      const result = await updateProjectDatabaseDesign({ projectId: project.id, databaseDesign })
-      if (result.success) { setLastSaved(new Date()); markClean('database'); toast.success('Database design saved') }
-      else toast.error(result.error || 'Failed to save database design')
-    } catch { toast.error('An error occurred') }
-    finally { setIsSaving(false) }
-  }
-
-  const saveDeployment = async () => {
-    if (!deployment) return
-    setIsSaving(true)
-    try {
-      const result = await updateProjectDeployment({ projectId: project.id, deployment })
-      if (result.success) { setLastSaved(new Date()); markClean('deployment'); toast.success('Deployment saved') }
-      else toast.error(result.error || 'Failed to save deployment')
-    } catch { toast.error('An error occurred') }
-    finally { setIsSaving(false) }
-  }
-
   // Dispatch save for the current active section
   const handleSave = () => {
     switch (activeSection) {
-      case 'overview':   return saveOverview()
-      case 'features':   return saveFeatures()
-      case 'modules':    return saveModules()
-      case 'techstack':  return saveTechStack()
-      case 'flow':       return saveFlow()
-      case 'api':        return saveApi()
-      case 'database':   return saveDatabase()
-      case 'deployment': return saveDeployment()
+      case 'overview':  return saveOverview()
+      case 'features':  return saveFeatures()
+      case 'modules':   return saveModules()
+      case 'techstack': return saveTechStack()
     }
   }
 
@@ -228,14 +153,10 @@ export function ProjectEditor({ project }: ProjectEditorProps) {
   // ── Sidebar items ──────────────────────────────────────────────────────────
 
   const sidebarItems: SidebarItem[] = [
-    { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} />, hasChanges: dirty.overview },
-    { id: 'features', label: 'Features', icon: <Target size={16} />, badge: features.length, hasChanges: dirty.features },
-    { id: 'modules', label: 'Modules & Tasks', icon: <FolderKanban size={16} />, badge: modules.length, hasChanges: dirty.modules },
-    { id: 'techstack', label: 'Tech Stack', icon: <Cpu size={16} />, badge: techStack.length, hasChanges: dirty.techstack },
-    { id: 'flow', label: 'Flow Builder', icon: <Workflow size={16} />, hasChanges: dirty.flow },
-    { id: 'api', label: 'API Structure', icon: <Code size={16} />, badge: apiStructure.length, hasChanges: dirty.api },
-    { id: 'database', label: 'Database', icon: <Database size={16} />, badge: databaseDesign.length, hasChanges: dirty.database },
-    { id: 'deployment', label: 'Deployment', icon: <Rocket size={16} />, hasChanges: dirty.deployment },
+    { id: 'overview',  label: 'Overview',       icon: <LayoutDashboard size={16} />, hasChanges: dirty.overview },
+    { id: 'features',  label: 'Features',        icon: <Target size={16} />,          badge: features.length,   hasChanges: dirty.features },
+    { id: 'modules',   label: 'Modules & Tasks', icon: <FolderKanban size={16} />,    badge: modules.length,    hasChanges: dirty.modules },
+    { id: 'techstack', label: 'Tech Stack',      icon: <Cpu size={16} />,             badge: techStack.length,  hasChanges: dirty.techstack },
   ]
 
   return (
@@ -366,43 +287,6 @@ export function ProjectEditor({ project }: ProjectEditorProps) {
                     techStack={techStack}
                     onChange={(t) => { setTechStack(t); markDirty('techstack') }}
                     onSave={saveTechStack}
-                    isLoading={isSaving}
-                  />
-                )}
-
-                {activeSection === 'flow' && (
-                  <FlowTab
-                    nodes={flowNodes}
-                    edges={flowEdges}
-                    onChange={handleFlowChange}
-                    onSave={saveFlow}
-                    isLoading={isSaving}
-                  />
-                )}
-
-                {activeSection === 'api' && (
-                  <ApiStructureTab
-                    apiStructure={apiStructure}
-                    onChange={(a) => { setApiStructure(a); markDirty('api') }}
-                    onSave={saveApi}
-                    isLoading={isSaving}
-                  />
-                )}
-
-                {activeSection === 'database' && (
-                  <DatabaseTab
-                    databaseDesign={databaseDesign}
-                    onChange={(d) => { setDatabaseDesign(d); markDirty('database') }}
-                    onSave={saveDatabase}
-                    isLoading={isSaving}
-                  />
-                )}
-
-                {activeSection === 'deployment' && (
-                  <DeploymentTab
-                    deployment={deployment}
-                    onChange={(d) => { setDeployment(d); markDirty('deployment') }}
-                    onSave={saveDeployment}
                     isLoading={isSaving}
                   />
                 )}
