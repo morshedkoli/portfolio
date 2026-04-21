@@ -1,10 +1,10 @@
 'use client'
 
-import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes } from 'react'
+import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes, SelectHTMLAttributes, ReactNode } from 'react'
 
 // Input Component
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string
+  label?: ReactNode
   error?: string
   helperText?: string
 }
@@ -37,7 +37,7 @@ Input.displayName = 'Input'
 
 // Textarea Component
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label?: string
+  label?: ReactNode
   error?: string
   helperText?: string
 }
@@ -70,7 +70,7 @@ Textarea.displayName = 'Textarea'
 
 // Select Component
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
-  label?: string
+  label?: ReactNode
   error?: string
   helperText?: string
   options: { value: string; label: string }[]

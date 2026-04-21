@@ -8,6 +8,7 @@ import { ProgressBar } from '@/components/ui/Progress'
 import { FeatureItemType, FeatureStatusType } from '@/lib/validations/project'
 import { generateId, getFeatureStatusColor, calculateFeaturesProgress } from '@/lib/utils/project-helpers'
 import { Plus, Trash2, GripVertical, Target, Edit2, Check, X } from 'lucide-react'
+import { AIGenerateButton } from '@/components/AIGenerateButton'
 
 interface FeaturesTabProps {
   features: FeatureItemType[]
@@ -86,6 +87,16 @@ export function FeaturesTab({ features, onChange, onSave, isLoading }: FeaturesT
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="md:col-span-2">
             <Input
+              label={
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-400">Feature Title</span>
+                  <AIGenerateButton 
+                    onGenerate={(text) => setNewFeature(prev => ({ ...prev, title: text }))}
+                    promptContext={{ field: "Feature Title", contextData: { currentTitle: newFeature.title } }}
+                    className="!p-1 scale-75 origin-right"
+                  />
+                </div>
+              }
               placeholder="Feature title..."
               value={newFeature.title}
               onChange={(e) => setNewFeature(prev => ({ ...prev, title: e.target.value }))}
@@ -103,6 +114,16 @@ export function FeaturesTab({ features, onChange, onSave, isLoading }: FeaturesT
         </div>
         <div className="mt-3">
           <Textarea
+            label={
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-400">Feature Description (SEO/AI Optimized)</span>
+                <AIGenerateButton 
+                  onGenerate={(text) => setNewFeature(prev => ({ ...prev, description: text }))}
+                  promptContext={{ field: "Feature Description", contextData: { featureTitle: newFeature.title } }}
+                  className="!p-1 scale-75 origin-right"
+                />
+              </div>
+            }
             placeholder="Optional description..."
             value={newFeature.description}
             onChange={(e) => setNewFeature(prev => ({ ...prev, description: e.target.value }))}

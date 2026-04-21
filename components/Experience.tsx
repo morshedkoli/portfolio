@@ -1,9 +1,8 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { useInView } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
-import { Briefcase, Calendar, MapPin } from 'lucide-react'
+import { Briefcase, Calendar, MapPin, ChevronRight } from 'lucide-react'
 
 interface Experience {
     id: string
@@ -43,71 +42,130 @@ const Experience = () => {
     if (!loading && experiences.length === 0) return null
 
     return (
-        <section id="experience" className="py-16 md:py-24 px-4 sm:px-6 relative bg-black/50">
-            <div className="max-w-6xl mx-auto" ref={ref}>
+        <section id="experience" className="py-20 md:py-28 px-4 sm:px-6 relative overflow-hidden">
+            {/* Background */}
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-1/4 left-0 w-[400px] h-[400px] bg-blue-600/[0.03] rounded-full blur-[120px]" />
+                <div className="absolute bottom-1/4 right-0 w-[400px] h-[400px] bg-purple-600/[0.03] rounded-full blur-[120px]" />
+            </div>
+
+            <div className="max-w-5xl mx-auto relative" ref={ref}>
+                {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 50 }}
                     animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                     transition={{ duration: 0.8 }}
-                    className="text-center mb-12 md:mb-16"
+                    className="text-center mb-14 md:mb-20"
                 >
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 md:mb-6 glow-text">
-                        Experience
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
+                        transition={{ duration: 0.5 }}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 mb-6"
+                    >
+                        <Briefcase size={14} className="text-blue-400" />
+                        <span className="text-blue-400 text-sm font-medium">Career Path</span>
+                    </motion.div>
+
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-5 tracking-tight">
+                        <span className="bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent">
+                            Experience
+                        </span>
                     </h2>
-                    <div className="h-1 w-16 md:w-20 bg-blue-500 mx-auto rounded-full" />
                 </motion.div>
 
-                <div className="relative border-l-2 border-zinc-800 ml-4 md:ml-0 md:pl-0 space-y-12">
-                    {loading ? (
-                        <div className="text-center text-zinc-500">Loading experience...</div>
-                    ) : (
-                        experiences.map((exp, index) => (
-                            <motion.div
-                                key={exp.id}
-                                initial={{ opacity: 0, x: -50 }}
-                                animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -50 }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="relative pl-8 md:pl-0"
-                            >
-                                {/* Timeline Dot */}
-                                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-500 border-4 border-black box-content" />
+                {/* Timeline */}
+                <div className="relative">
+                    {/* Timeline line */}
+                    <motion.div 
+                        className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px md:-translate-x-px"
+                        initial={{ height: 0 }}
+                        animate={isInView ? { height: '100%' } : { height: 0 }}
+                        transition={{ duration: 1.5, ease: 'easeOut' }}
+                    >
+                        <div className="w-full h-full bg-gradient-to-b from-blue-500/40 via-purple-500/20 to-transparent" />
+                    </motion.div>
 
-                                <div className="md:grid md:grid-cols-12 md:gap-8 group">
-                                    {/* Date (Desktop) */}
-                                    <div className="hidden md:block md:col-span-3 text-right pt-1">
-                                        <p className="text-blue-400 font-mono font-medium flex items-center justify-end gap-2">
-                                            {new Date(exp.startDate).getFullYear()} - {exp.current ? 'Present' : new Date(exp.endDate!).getFullYear()}
-                                            <Calendar size={16} />
-                                        </p>
-                                        {exp.location && (
-                                            <p className="text-zinc-500 text-sm mt-1 flex items-center justify-end gap-1">
-                                                {exp.location} <MapPin size={14} />
-                                            </p>
-                                        )}
+                    {loading ? (
+                        <div className="flex justify-center py-16">
+                            <div className="w-10 h-10 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin" />
+                        </div>
+                    ) : (
+                        <div className="space-y-12 md:space-y-16">
+                            {experiences.map((exp, index) => (
+                                <motion.div
+                                    key={exp.id}
+                                    initial={{ opacity: 0, y: 40 }}
+                                    animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+                                    transition={{ duration: 0.6, delay: 0.2 + index * 0.15 }}
+                                    className={`relative flex flex-col md:flex-row gap-6 md:gap-10 ${
+                                        index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
+                                    }`}
+                                >
+                                    {/* Timeline dot */}
+                                    <div className="absolute left-4 md:left-1/2 -translate-x-1/2 z-10">
+                                        <motion.div
+                                            initial={{ scale: 0 }}
+                                            animate={isInView ? { scale: 1 } : { scale: 0 }}
+                                            transition={{ delay: 0.3 + index * 0.15, type: 'spring', stiffness: 300 }}
+                                            className="relative"
+                                        >
+                                            <div className="w-3 h-3 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50" />
+                                            <div className="absolute inset-0 w-3 h-3 rounded-full bg-blue-500 animate-ping opacity-30" />
+                                        </motion.div>
                                     </div>
 
-                                    {/* Content */}
-                                    <div className="md:col-span-9 bg-zinc-900/50 border border-zinc-800 p-6 rounded-xl hover:border-blue-500/30 transition-colors">
-                                        <div className="mb-4">
-                                            {/* Mobile Date */}
-                                            <div className="md:hidden flex flex-wrap gap-4 text-sm text-blue-400 mb-2 font-mono">
-                                                <span className="flex items-center gap-1"><Calendar size={14} />{new Date(exp.startDate).getFullYear()} - {exp.current ? 'Present' : new Date(exp.endDate!).getFullYear()}</span>
-                                                {exp.location && <span className="flex items-center gap-1"><MapPin size={14} /> {exp.location}</span>}
+                                    {/* Date column */}
+                                    <div className={`hidden md:flex md:w-[calc(50%-2rem)] ${
+                                        index % 2 === 0 ? 'justify-end text-right' : 'justify-start text-left'
+                                    }`}>
+                                        <div className="pt-0">
+                                            <p className="text-blue-400 font-mono font-medium flex items-center gap-2">
+                                                {index % 2 !== 0 && <Calendar size={14} />}
+                                                {new Date(exp.startDate).getFullYear()} — {exp.current ? 'Present' : new Date(exp.endDate!).getFullYear()}
+                                                {index % 2 === 0 && <Calendar size={14} />}
+                                            </p>
+                                            {exp.location && (
+                                                <p className="text-gray-500 text-sm mt-1.5 flex items-center gap-1.5">
+                                                    {index % 2 !== 0 && <MapPin size={12} />}
+                                                    {exp.location}
+                                                    {index % 2 === 0 && <MapPin size={12} />}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Content card */}
+                                    <div className="ml-12 md:ml-0 md:w-[calc(50%-2rem)]">
+                                        <div className="glass-card rounded-2xl p-6 group hover:shadow-2xl hover:shadow-blue-500/[0.06] transition-all duration-500">
+                                            {/* Mobile date */}
+                                            <div className="md:hidden flex flex-wrap gap-3 text-sm mb-3">
+                                                <span className="flex items-center gap-1.5 text-blue-400 font-mono">
+                                                    <Calendar size={12} />
+                                                    {new Date(exp.startDate).getFullYear()} — {exp.current ? 'Present' : new Date(exp.endDate!).getFullYear()}
+                                                </span>
+                                                {exp.location && (
+                                                    <span className="flex items-center gap-1 text-gray-500">
+                                                        <MapPin size={12} /> {exp.location}
+                                                    </span>
+                                                )}
                                             </div>
 
-                                            <h3 className="text-2xl font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">{exp.position}</h3>
-                                            <h4 className="text-xl text-zinc-400 flex items-center gap-2">
-                                                <Briefcase size={18} className="text-blue-500" />
+                                            <h3 className="text-xl font-bold text-white mb-1 group-hover:text-blue-300 transition-colors">
+                                                {exp.position}
+                                            </h3>
+                                            <h4 className="text-base text-gray-400 flex items-center gap-2 mb-4">
+                                                <Briefcase size={14} className="text-blue-500" />
                                                 {exp.company}
                                             </h4>
+                                            <p className="text-gray-400/80 leading-relaxed text-sm whitespace-pre-line">
+                                                {exp.description}
+                                            </p>
                                         </div>
-                                        <p className="text-zinc-300 leading-relaxed whitespace-pre-line">
-                                            {exp.description}
-                                        </p>
                                     </div>
-                                </div>
-                            </motion.div>
-                        ))
+                                </motion.div>
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>

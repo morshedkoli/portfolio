@@ -1,5 +1,5 @@
-import { ProjectEditor } from '@/components/admin/project-editor/ProjectEditor'
+import { ProjectWizard } from '@/components/admin/project-editor/ProjectWizard'
 
 export default function NewProjectPage() {
-  return <ProjectEditor isNew={true} />
+  return <ProjectWizard />
 }

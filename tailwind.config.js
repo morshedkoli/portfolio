@@ -30,8 +30,9 @@ module.exports = {
         'float': 'float 6s ease-in-out infinite',
         'glow': 'glow 2s ease-in-out infinite alternate',
         'shimmer': 'shimmer 2s linear infinite',
-        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'pulse-slow': 'pulse-slow 6s ease-in-out infinite',
         'gradient': 'gradient 8s ease infinite',
+        'gradient-x': 'gradient-x 4s ease infinite',
         'typing': 'typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite',
         'bounce-slow': 'bounce 3s infinite',
         'slide-up': 'slideUp 0.5s ease-out',
@@ -79,6 +80,14 @@ module.exports = {
         fadeIn: {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
+        },
+        'pulse-slow': {
+          '0%, 100%': { opacity: '0.5', transform: 'scale(1)' },
+          '50%': { opacity: '0.8', transform: 'scale(1.05)' },
+        },
+        'gradient-x': {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
         },
       },
       backgroundImage: {

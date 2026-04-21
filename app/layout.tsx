@@ -2,45 +2,19 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Metadata, Viewport } from 'next'
 import ToasterProvider from '@/components/ToasterProvider'
-import { prisma } from '@/lib/prisma'
+import { getPublicProfile, getSettingsMap } from '@/lib/site-data'
 
 const inter = Inter({ subsets: ['latin'] })
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://murshedkoli.com'
 
-// Fetch settings from database
-async function getSettings() {
-  try {
-    const settings = await prisma.settings.findMany()
-    const settingsMap: Record<string, any> = {}
-    settings.forEach((s) => {
-      settingsMap[s.key] = s.value
-    })
-    return settingsMap
-  } catch (error) {
-    console.error('Error fetching settings for metadata:', error)
-    return {}
-  }
-}
-
-// Fetch profile from database
-async function getProfile() {
-  try {
-    const profile = await prisma.profile.findFirst()
-    return profile
-  } catch (error) {
-    console.error('Error fetching profile for metadata:', error)
-    return null
-  }
-}
-
 export async function generateMetadata(): Promise<Metadata> {
-  const [settings, profile] = await Promise.all([getSettings(), getProfile()])
+  const [settings, profile] = await Promise.all([getSettingsMap(), getPublicProfile()])
   
-  const siteName = settings.siteName || profile?.name || 'Portfolio'
-  const siteDescription = settings.siteDescription || profile?.description || 'Professional portfolio showcasing projects, skills, and experience.'
-  const siteTitle = settings.siteTitle || `${siteName} | ${siteDescription}`
-  const siteKeywords = settings.siteKeywords || [
+  const siteName = (settings.siteName as string) || profile?.name || 'Portfolio'
+  const siteDescription = (settings.siteDescription as string) || profile?.description || 'Professional portfolio showcasing projects, skills, and experience.'
+  const siteTitle = (settings.siteTitle as string) || `${siteName} | ${siteDescription}`
+  const siteKeywords = (settings.siteKeywords as string[] | string) || [
     siteName,
     'web developer',
     'full stack developer',
@@ -61,6 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
     authors: [{ name: siteName, url: siteUrl }],
     creator: siteName,
     publisher: siteName,
+    category: 'technology',
     robots: {
       index: true,
       follow: true,
@@ -116,19 +91,71 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [settings, profile] = await Promise.all([getSettings(), getProfile()])
+  const [settings, profile] = await Promise.all([getSettingsMap(), getPublicProfile()])
   
-  const siteName = settings.siteName || profile?.name || 'Portfolio'
+  const siteName = (settings.siteName as string) || profile?.name || 'Portfolio'
+  const siteDescription =
+    (settings.siteDescription as string) ||
+    profile?.description ||
+    'Professional portfolio showcasing projects, skills, and experience.'
+  const siteTitle = (settings.siteTitle as string) || `${siteName} | ${siteDescription}`
+  const sameAs = profile?.socialLinks
+    ? Object.values(profile.socialLinks).filter(Boolean)
+    : []
 
-  // JSON-LD structured data for SEO
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Person',
-    name: siteName,
-    url: siteUrl,
-    jobTitle: profile?.title || 'Full Stack Web Developer',
-    knowsAbout: ['React', 'Next.js', 'TypeScript', 'JavaScript', 'Node.js', 'MongoDB', 'Web Development'],
-    sameAs: profile?.socialLinks ? Object.values(profile.socialLinks as Record<string, string>).filter(Boolean) : [],
+    '@graph': [
+      {
+        '@type': 'ProfilePage',
+        '@id': `${siteUrl}/#profile-page`,
+        url: siteUrl,
+        name: siteTitle,
+        description: siteDescription,
+        mainEntity: {
+          '@type': 'Person',
+          '@id': `${siteUrl}/#person`,
+          name: siteName,
+          url: siteUrl,
+          jobTitle: profile?.title || 'Full Stack Web Developer',
+          knowsAbout: ['React', 'Next.js', 'TypeScript', 'JavaScript', 'Node.js', 'MongoDB', 'Web Development'],
+          sameAs,
+          image: profile?.heroImage || `${siteUrl}/image.png`,
+          description: profile?.description || siteDescription,
+          email: profile?.email ? `mailto:${profile.email}` : undefined,
+          telephone: profile?.phone || undefined,
+          homeLocation: profile?.location
+            ? {
+                '@type': 'Place',
+                name: profile.location,
+              }
+            : undefined,
+        }
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${siteUrl}/#website`,
+        url: siteUrl,
+        name: siteName,
+        description: siteDescription,
+        publisher: {
+          '@id': `${siteUrl}/#person`
+        }
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${siteUrl}/#webpage`,
+        url: siteUrl,
+        name: siteTitle,
+        description: siteDescription,
+        isPartOf: {
+          '@id': `${siteUrl}/#website`,
+        },
+        about: {
+          '@id': `${siteUrl}/#person`,
+        },
+      }
+    ]
   }
 
   return (

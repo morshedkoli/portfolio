@@ -10,6 +10,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@google/genai": "^1.50.1",
     "@prisma/client": "^5.22.0",
     "@react-three/drei": "^9.88.13",
     "@react-three/fiber": "^8.15.12",

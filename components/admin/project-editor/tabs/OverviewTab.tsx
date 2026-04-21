@@ -1,431 +1,483 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, forwardRef, useImperativeHandle } from 'react'
 import { motion } from 'framer-motion'
-import { Input, Textarea, Select, Button, Card } from '@/components/ui/FormElements'
-import { Badge, StatusBadge } from '@/components/ui/Badge'
-import { ProgressBar, CircularProgress } from '@/components/ui/Progress'
+import { Input, Textarea, Select, Card } from '@/components/ui/FormElements'
+import { CircularProgress } from '@/components/ui/Progress'
 import { ImageUpload } from '@/components/ui/ImageUpload'
 import { getLifecycleStatusInfo, getFeatureStats, getTaskStats, formatDate } from '@/lib/utils/project-helpers'
 import { ProjectLifecycleStatusType } from '@/lib/validations/project'
-import { 
-  Image as ImageIcon, 
-  Calendar, 
-  ExternalLink, 
-  Github, 
-  Clock, 
-  Target, 
-  CheckCircle2,
-  ListTodo,
-  TrendingUp,
-  Smartphone,
-  Link as LinkIcon
+import {
+  Github, ExternalLink, Globe, Link as LinkIcon,
+  Smartphone, Calendar, Clock, Target, ListTodo,
+  TrendingUp, ChevronDown,
 } from 'lucide-react'
+import { AIGenerateButton } from '@/components/AIGenerateButton'
+
+export interface OverviewTabHandle {
+  submit: () => void
+}
 
 interface OverviewTabProps {
   project: any
   onUpdate: (data: any) => void
+  onAnyChange?: () => void
   isLoading?: boolean
 }
 
-export function OverviewTab({ project, onUpdate, isLoading }: OverviewTabProps) {
-  const [formData, setFormData] = useState({
-    title: project?.title || '',
-    slug: project?.slug || '',
-    description: project?.description || '',
-    longDescription: project?.longDescription || '',
-    projectType: project?.projectType || 'webapp',
-    lifecycleStatus: project?.lifecycleStatus || 'idea',
-    publishStatus: project?.publishStatus || 'draft',
-    coverImage: project?.coverImage || '',
-    logoUrl: project?.logoUrl || '',
-    githubUrl: project?.githubUrl || '',
-    demoUrl: project?.demoUrl || '',
-    clientProjectUrl: project?.clientProjectUrl || '',
-    adminProjectUrl: project?.adminProjectUrl || '',
-    clientLiveUrl: project?.clientLiveUrl || '',
-    adminLiveUrl: project?.adminLiveUrl || '',
-    androidDownloadUrl: project?.androidDownloadUrl || '',
-    githubUrlEnabled: project?.githubUrlEnabled ?? true,
-    demoUrlEnabled: project?.demoUrlEnabled ?? true,
-    clientProjectUrlEnabled: project?.clientProjectUrlEnabled ?? false,
-    adminProjectUrlEnabled: project?.adminProjectUrlEnabled ?? false,
-    clientLiveUrlEnabled: project?.clientLiveUrlEnabled ?? false,
-    adminLiveUrlEnabled: project?.adminLiveUrlEnabled ?? false,
-    androidDownloadUrlEnabled: project?.androidDownloadUrlEnabled ?? false,
-    featured: project?.featured || false,
-    order: project?.order || 0
-  })
+// ────────────────────────────────────────────────────────────────────────────
+// Link table config
+// ────────────────────────────────────────────────────────────────────────────
+const LINK_FIELDS = [
+  {
+    key: 'githubUrl', enabledKey: 'githubUrlEnabled',
+    label: 'GitHub Repo', icon: Github,
+    placeholder: 'https://github.com/user/repo',
+    group: 'primary',
+  },
+  {
+    key: 'demoUrl', enabledKey: 'demoUrlEnabled',
+    label: 'Live Demo', icon: ExternalLink,
+    placeholder: 'https://demo.example.com',
+    group: 'primary',
+  },
+  {
+    key: 'clientProjectUrl', enabledKey: 'clientProjectUrlEnabled',
+    label: 'Client Project', icon: Globe,
+    placeholder: 'https://client-project.com',
+    group: 'project',
+  },
+  {
+    key: 'adminProjectUrl', enabledKey: 'adminProjectUrlEnabled',
+    label: 'Admin Project', icon: LinkIcon,
+    placeholder: 'https://admin-project.com',
+    group: 'project',
+  },
+  {
+    key: 'clientLiveUrl', enabledKey: 'clientLiveUrlEnabled',
+    label: 'Client Live', icon: ExternalLink,
+    placeholder: 'https://client-live.com',
+    group: 'live',
+  },
+  {
+    key: 'adminLiveUrl', enabledKey: 'adminLiveUrlEnabled',
+    label: 'Admin Live', icon: ExternalLink,
+    placeholder: 'https://admin.live.com',
+    group: 'live',
+  },
+  {
+    key: 'androidDownloadUrl', enabledKey: 'androidDownloadUrlEnabled',
+    label: 'Android Download', icon: Smartphone,
+    placeholder: 'https://play.google.com/store/...',
+    group: 'mobile',
+  },
+] as const
 
-  const handleChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onUpdate(formData)
-  }
-
-  const lifecycleOptions = [
-    { value: 'idea', label: '💡 Idea' },
-    { value: 'planning', label: '📋 Planning' },
-    { value: 'design', label: '🎨 Design' },
-    { value: 'development', label: '💻 Development' },
-    { value: 'testing', label: '🧪 Testing' },
-    { value: 'deployment', label: '🚀 Deployment' },
-    { value: 'live', label: '✅ Live' }
-  ]
-
-  const publishOptions = [
-    { value: 'draft', label: 'Draft' },
-    { value: 'published', label: 'Published' },
-    { value: 'archived', label: 'Archived' }
-  ]
-
-  const projectTypeOptions = [
-    { value: 'webapp', label: 'Web Application' },
-    { value: 'android', label: 'Android App' },
-    { value: 'desktop', label: 'Desktop App' },
-    { value: 'api', label: 'API / Backend' }
-  ]
-
-  const statusInfo = getLifecycleStatusInfo(formData.lifecycleStatus as ProjectLifecycleStatusType)
-  const featureStats = project?.features ? getFeatureStats(project.features) : { total: 0, planned: 0, inProgress: 0, completed: 0 }
-  const taskStats = project?.modules ? getTaskStats(project.modules) : { total: 0, backlog: 0, todo: 0, inProgress: 0, review: 0, completed: 0 }
-
+// ────────────────────────────────────────────────────────────────────────────
+// Toggle Switch micro-component
+// ────────────────────────────────────────────────────────────────────────────
+function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="space-y-6">
-      {/* Stats Overview */}
-      {project?.id && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="!p-4">
-            <div className="flex items-center gap-3">
-              <CircularProgress value={project.overallProgress || 0} size={50} />
-              <div>
-                <p className="text-xs text-gray-400">Progress</p>
-                <p className="text-lg font-semibold text-white">{project.overallProgress || 0}%</p>
-              </div>
-            </div>
-          </Card>
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`
+        relative w-8 h-4.5 rounded-full transition-colors duration-200 shrink-0
+        ${checked ? 'bg-blue-600' : 'bg-zinc-700'}
+      `}
+      style={{ height: '18px' }}
+    >
+      <span
+        className={`
+          absolute top-[2px] left-[2px] w-[14px] h-[14px] rounded-full bg-white shadow
+          transition-transform duration-200
+          ${checked ? 'translate-x-[14px]' : 'translate-x-0'}
+        `}
+      />
+    </button>
+  )
+}
 
-          <Card className="!p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <Target className="text-purple-400" size={24} />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Features</p>
-                <p className="text-lg font-semibold text-white">{featureStats.completed}/{featureStats.total}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="!p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <ListTodo className="text-blue-400" size={24} />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Tasks</p>
-                <p className="text-lg font-semibold text-white">{taskStats.completed}/{taskStats.total}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="!p-4">
-            <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-lg ${statusInfo.bgColor} flex items-center justify-center`}>
-                <TrendingUp className={statusInfo.color} size={24} />
-              </div>
-              <div>
-                <p className="text-xs text-gray-400">Stage</p>
-                <p className={`text-lg font-semibold ${statusInfo.color}`}>{statusInfo.label}</p>
-              </div>
-            </div>
-          </Card>
-        </div>
+// ────────────────────────────────────────────────────────────────────────────
+// Section Accordion wrapper
+// ────────────────────────────────────────────────────────────────────────────
+function Section({
+  title,
+  defaultOpen = true,
+  children,
+}: {
+  title: string
+  defaultOpen?: boolean
+  children: React.ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  return (
+    <div className="bg-white/[0.03] border border-white/[0.07] rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-white/[0.02] transition-colors"
+      >
+        <span className="text-sm font-semibold text-zinc-200">{title}</span>
+        <ChevronDown
+          size={16}
+          className={`text-zinc-500 transition-transform duration-200 ${open ? '' : '-rotate-90'}`}
+        />
+      </button>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="px-5 pb-5 space-y-4"
+        >
+          {children}
+        </motion.div>
       )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Basic Info */}
-        <Card>
-          <h3 className="text-lg font-semibold text-white mb-4">Basic Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Project Title"
-              value={formData.title}
-              onChange={(e) => handleChange('title', e.target.value)}
-              placeholder="My Awesome Project"
-              required
-            />
-            <Input
-              label="Slug (URL)"
-              value={formData.slug}
-              onChange={(e) => handleChange('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
-              placeholder="my-awesome-project"
-              required
-            />
-          </div>
-
-          <div className="mt-4">
-            <Textarea
-              label="Short Description"
-              value={formData.description}
-              onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Brief description of the project..."
-              rows={2}
-              required
-            />
-          </div>
-
-          <div className="mt-4">
-            <Textarea
-              label="Long Description (Markdown supported)"
-              value={formData.longDescription}
-              onChange={(e) => handleChange('longDescription', e.target.value)}
-              placeholder="Detailed project description with features, goals, etc..."
-              rows={6}
-            />
-          </div>
-        </Card>
-
-        {/* Status & Type */}
-        <Card>
-          <h3 className="text-lg font-semibold text-white mb-4">Status & Configuration</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Select
-              label="Project Type"
-              value={formData.projectType}
-              onChange={(e) => handleChange('projectType', e.target.value)}
-              options={projectTypeOptions}
-            />
-            <Select
-              label="Lifecycle Stage"
-              value={formData.lifecycleStatus}
-              onChange={(e) => handleChange('lifecycleStatus', e.target.value)}
-              options={lifecycleOptions}
-            />
-            <Select
-              label="Publish Status"
-              value={formData.publishStatus}
-              onChange={(e) => handleChange('publishStatus', e.target.value)}
-              options={publishOptions}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <Input
-              label="Display Order"
-              type="number"
-              value={formData.order}
-              onChange={(e) => handleChange('order', parseInt(e.target.value) || 0)}
-            />
-            <div className="flex items-center gap-3 pt-8">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.featured}
-                  onChange={(e) => handleChange('featured', e.target.checked)}
-                  className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
-                />
-                <span className="text-gray-300">Featured Project</span>
-              </label>
-            </div>
-          </div>
-        </Card>
-
-        {/* Media */}
-        <Card>
-          <h3 className="text-lg font-semibold text-white mb-4">Media</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ImageUpload
-              label="Cover Image"
-              value={formData.coverImage}
-              onChange={(url) => handleChange('coverImage', url)}
-              previewSize="large"
-            />
-            <ImageUpload
-              label="Logo"
-              value={formData.logoUrl}
-              onChange={(url) => handleChange('logoUrl', url)}
-              previewSize="medium"
-            />
-          </div>
-        </Card>
-
-        {/* Links */}
-        <Card>
-          <h3 className="text-lg font-semibold text-white mb-4">Project Links</h3>
-          <div className="space-y-4">
-            {/* Legacy Links - GitHub and Demo */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.githubUrlEnabled}
-                    onChange={(e) => handleChange('githubUrlEnabled', e.target.checked)}
-                    className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
-                  />
-                  <label className="text-sm text-gray-300">GitHub Repository</label>
-                </div>
-                <Input
-                  value={formData.githubUrl}
-                  onChange={(e) => handleChange('githubUrl', e.target.value)}
-                  placeholder="https://github.com/..."
-                  disabled={!formData.githubUrlEnabled}
-                />
-              </div>
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-2">
-                  <input
-                    type="checkbox"
-                    checked={formData.demoUrlEnabled}
-                    onChange={(e) => handleChange('demoUrlEnabled', e.target.checked)}
-                    className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
-                  />
-                  <label className="text-sm text-gray-300">Live Demo URL</label>
-                </div>
-                <Input
-                  value={formData.demoUrl}
-                  onChange={(e) => handleChange('demoUrl', e.target.value)}
-                  placeholder="https://..."
-                  disabled={!formData.demoUrlEnabled}
-                />
-              </div>
-            </div>
-
-            {/* Client & Admin Project Links */}
-            <div className="border-t border-white/10 pt-4 mt-4">
-              <h4 className="text-sm font-medium text-gray-400 mb-3">Project Access Links</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.clientProjectUrlEnabled}
-                      onChange={(e) => handleChange('clientProjectUrlEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
-                    />
-                    <label className="text-sm text-gray-300">Client Project Link</label>
-                  </div>
-                  <Input
-                    value={formData.clientProjectUrl}
-                    onChange={(e) => handleChange('clientProjectUrl', e.target.value)}
-                    placeholder="https://client-project-url..."
-                    disabled={!formData.clientProjectUrlEnabled}
-                  />
-                </div>
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.adminProjectUrlEnabled}
-                      onChange={(e) => handleChange('adminProjectUrlEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
-                    />
-                    <label className="text-sm text-gray-300">Admin Project Link</label>
-                  </div>
-                  <Input
-                    value={formData.adminProjectUrl}
-                    onChange={(e) => handleChange('adminProjectUrl', e.target.value)}
-                    placeholder="https://admin-project-url..."
-                    disabled={!formData.adminProjectUrlEnabled}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Live Links */}
-            <div className="border-t border-white/10 pt-4">
-              <h4 className="text-sm font-medium text-gray-400 mb-3">Live Links</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.clientLiveUrlEnabled}
-                      onChange={(e) => handleChange('clientLiveUrlEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
-                    />
-                    <label className="text-sm text-gray-300">Client Live Link</label>
-                  </div>
-                  <Input
-                    value={formData.clientLiveUrl}
-                    onChange={(e) => handleChange('clientLiveUrl', e.target.value)}
-                    placeholder="https://client-live-url..."
-                    disabled={!formData.clientLiveUrlEnabled}
-                  />
-                </div>
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.adminLiveUrlEnabled}
-                      onChange={(e) => handleChange('adminLiveUrlEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
-                    />
-                    <label className="text-sm text-gray-300">Admin Live Link</label>
-                  </div>
-                  <Input
-                    value={formData.adminLiveUrl}
-                    onChange={(e) => handleChange('adminLiveUrl', e.target.value)}
-                    placeholder="https://admin-live-url..."
-                    disabled={!formData.adminLiveUrlEnabled}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Android Download */}
-            <div className="border-t border-white/10 pt-4">
-              <h4 className="text-sm font-medium text-gray-400 mb-3">Mobile App</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-2">
-                    <input
-                      type="checkbox"
-                      checked={formData.androidDownloadUrlEnabled}
-                      onChange={(e) => handleChange('androidDownloadUrlEnabled', e.target.checked)}
-                      className="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500"
-                    />
-                    <label className="text-sm text-gray-300">Android App Download Link</label>
-                  </div>
-                  <Input
-                    value={formData.androidDownloadUrl}
-                    onChange={(e) => handleChange('androidDownloadUrl', e.target.value)}
-                    placeholder="https://play.google.com/..."
-                    disabled={!formData.androidDownloadUrlEnabled}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Timestamps */}
-        {project?.id && (
-          <Card className="!bg-white/5">
-            <div className="flex items-center gap-6 text-sm text-gray-400">
-              <div className="flex items-center gap-2">
-                <Calendar size={14} />
-                <span>Created: {formatDate(project.createdAt)}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock size={14} />
-                <span>Updated: {formatDate(project.updatedAt)}</span>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Submit */}
-        <div className="flex justify-end gap-3">
-          <Button type="submit" isLoading={isLoading}>
-            Save Changes
-          </Button>
-        </div>
-      </form>
     </div>
   )
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// OverviewTab
+// ────────────────────────────────────────────────────────────────────────────
+export const OverviewTab = forwardRef<OverviewTabHandle, OverviewTabProps>(
+  ({ project, onUpdate, onAnyChange, isLoading }, ref) => {
+    const formRef = useRef<HTMLFormElement>(null)
+
+    const [formData, setFormData] = useState({
+      title: project?.title || '',
+      slug: project?.slug || '',
+      description: project?.description || '',
+      longDescription: project?.longDescription || '',
+      projectType: project?.projectType || 'webapp',
+      lifecycleStatus: project?.lifecycleStatus || 'idea',
+      publishStatus: project?.publishStatus || 'draft',
+      coverImage: project?.coverImage || '',
+      logoUrl: project?.logoUrl || '',
+      githubUrl: project?.githubUrl || '',
+      demoUrl: project?.demoUrl || '',
+      clientProjectUrl: project?.clientProjectUrl || '',
+      adminProjectUrl: project?.adminProjectUrl || '',
+      clientLiveUrl: project?.clientLiveUrl || '',
+      adminLiveUrl: project?.adminLiveUrl || '',
+      androidDownloadUrl: project?.androidDownloadUrl || '',
+      githubUrlEnabled: project?.githubUrlEnabled ?? true,
+      demoUrlEnabled: project?.demoUrlEnabled ?? true,
+      clientProjectUrlEnabled: project?.clientProjectUrlEnabled ?? false,
+      adminProjectUrlEnabled: project?.adminProjectUrlEnabled ?? false,
+      clientLiveUrlEnabled: project?.clientLiveUrlEnabled ?? false,
+      adminLiveUrlEnabled: project?.adminLiveUrlEnabled ?? false,
+      androidDownloadUrlEnabled: project?.androidDownloadUrlEnabled ?? false,
+      featured: project?.featured || false,
+      order: project?.order || 0,
+    })
+
+    // Expose submit method to parent via ref
+    useImperativeHandle(ref, () => ({
+      submit: () => formRef.current?.requestSubmit(),
+    }))
+
+    const handleChange = (field: string, value: any) => {
+      setFormData(prev => ({ ...prev, [field]: value }))
+      onAnyChange?.()
+    }
+
+    const handleSubmit = (e: React.FormEvent) => {
+      e.preventDefault()
+      onUpdate(formData)
+    }
+
+    const statusInfo = getLifecycleStatusInfo(formData.lifecycleStatus as ProjectLifecycleStatusType)
+    const featureStats = project?.features ? getFeatureStats(project.features) : { total: 0, completed: 0 }
+    const taskStats = project?.modules ? getTaskStats(project.modules) : { total: 0, completed: 0 }
+
+    const lifecycleOptions = [
+      { value: 'idea', label: '💡 Idea' },
+      { value: 'planning', label: '📋 Planning' },
+      { value: 'design', label: '🎨 Design' },
+      { value: 'development', label: '💻 Development' },
+      { value: 'testing', label: '🧪 Testing' },
+      { value: 'deployment', label: '🚀 Deployment' },
+      { value: 'live', label: '✅ Live' },
+    ]
+    const publishOptions = [
+      { value: 'draft', label: 'Draft' },
+      { value: 'published', label: 'Published' },
+      { value: 'archived', label: 'Archived' },
+    ]
+    const projectTypeOptions = [
+      { value: 'webapp', label: 'Web Application' },
+      { value: 'android', label: 'Android App' },
+      { value: 'desktop', label: 'Desktop App' },
+      { value: 'api', label: 'API / Backend' },
+    ]
+
+    return (
+      <div className="space-y-4">
+        {/* Stats strip (existing projects only) */}
+        {project?.id && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-2">
+            {[
+              {
+                label: 'Progress',
+                value: `${project.overallProgress || 0}%`,
+                el: <CircularProgress value={project.overallProgress || 0} size={40} />,
+              },
+              {
+                label: 'Features',
+                value: `${featureStats.completed}/${featureStats.total}`,
+                icon: Target,
+                color: 'text-purple-400',
+                bg: 'bg-purple-500/10',
+              },
+              {
+                label: 'Tasks',
+                value: `${taskStats.completed}/${taskStats.total}`,
+                icon: ListTodo,
+                color: 'text-blue-400',
+                bg: 'bg-blue-500/10',
+              },
+              {
+                label: 'Stage',
+                value: statusInfo.label,
+                icon: TrendingUp,
+                color: statusInfo.color,
+                bg: statusInfo.bgColor,
+              },
+            ].map((stat, i) => (
+              <div
+                key={i}
+                className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.07] rounded-xl px-4 py-3"
+              >
+                {stat.el
+                  ? stat.el
+                  : stat.icon && (
+                      <div className={`w-9 h-9 rounded-lg ${stat.bg} flex items-center justify-center shrink-0`}>
+                        <stat.icon className={stat.color} size={18} />
+                      </div>
+                    )}
+                <div>
+                  <p className="text-[11px] text-zinc-500">{stat.label}</p>
+                  <p className={`text-sm font-semibold ${stat.color || 'text-white'}`}>{stat.value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4">
+          {/* ── Identity ── */}
+          <Section title="Identity">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label={
+                  <div className="flex items-center justify-between w-full">
+                    <span>
+                      Project Title <span className="text-red-500">*</span>
+                    </span>
+                    <AIGenerateButton
+                      onGenerate={(text) => handleChange('title', text)}
+                      promptContext={{ field: 'Project Title', contextData: { title: formData.title, description: formData.description } }}
+                      className="!p-1 scale-75 origin-right"
+                    />
+                  </div>
+                }
+                value={formData.title}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="My Awesome Project"
+                required
+              />
+              <Input
+                label="URL Slug *"
+                value={formData.slug}
+                onChange={(e) =>
+                  handleChange('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))
+                }
+                placeholder="my-awesome-project"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:items-end">
+              <Select
+                label="Project Type"
+                value={formData.projectType}
+                onChange={(e) => handleChange('projectType', e.target.value)}
+                options={projectTypeOptions}
+              />
+              <Input
+                label="Display Order"
+                type="number"
+                value={formData.order}
+                onChange={(e) => handleChange('order', parseInt(e.target.value) || 0)}
+              />
+              <div className="flex items-end pb-1">
+                <label className="flex items-center gap-2.5 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={formData.featured}
+                    onChange={(e) => handleChange('featured', e.target.checked)}
+                    className="w-4 h-4 rounded border-zinc-600 bg-zinc-800 text-blue-500 focus:ring-blue-500"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">
+                      Featured
+                    </p>
+                    <p className="text-xs text-zinc-600">Show on homepage</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </Section>
+
+          {/* ── Content ── */}
+          <Section title="Content & Descriptions">
+            <Textarea
+              label={
+                <div className="flex items-center justify-between w-full">
+                  <span>Short Description (SEO) <span className="text-red-500">*</span></span>
+                  <AIGenerateButton
+                    onGenerate={(text) => handleChange('description', text)}
+                    promptContext={{ field: 'Short Description', contextData: { title: formData.title, description: formData.description } }}
+                    className="!p-1 scale-75 origin-right"
+                  />
+                </div>
+              }
+              value={formData.description}
+              onChange={(e) => handleChange('description', e.target.value)}
+              placeholder="A concise description of what this project does…"
+              rows={2}
+              required
+            />
+
+            <Textarea
+              label={
+                <div className="flex items-center justify-between w-full">
+                  <span>Long Description (Markdown / AI Crawler)</span>
+                  <AIGenerateButton
+                    onGenerate={(text) => handleChange('longDescription', text)}
+                    promptContext={{ field: 'Long Description', contextData: { title: formData.title, description: formData.description } }}
+                    className="!p-1 scale-75 origin-right"
+                  />
+                </div>
+              }
+              value={formData.longDescription}
+              onChange={(e) => handleChange('longDescription', e.target.value)}
+              placeholder="Detailed description with features, goals, tech highlights…"
+              rows={6}
+            />
+          </Section>
+
+          {/* ── Status ── */}
+          <Section title="Status & Visibility">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Select
+                label="Lifecycle Stage"
+                value={formData.lifecycleStatus}
+                onChange={(e) => handleChange('lifecycleStatus', e.target.value)}
+                options={lifecycleOptions}
+              />
+              <Select
+                label="Publish Status"
+                value={formData.publishStatus}
+                onChange={(e) => handleChange('publishStatus', e.target.value)}
+                options={publishOptions}
+              />
+            </div>
+          </Section>
+
+          {/* ── Media ── */}
+          <Section title="Media">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <ImageUpload
+                label="Cover Image"
+                value={formData.coverImage}
+                onChange={(url) => handleChange('coverImage', url)}
+                previewSize="large"
+              />
+              <ImageUpload
+                label="Logo"
+                value={formData.logoUrl}
+                onChange={(url) => handleChange('logoUrl', url)}
+                previewSize="medium"
+              />
+            </div>
+          </Section>
+
+          {/* ── Links ── */}
+          <Section title="Project Links" defaultOpen={false}>
+            <p className="text-xs text-zinc-600 -mt-1 mb-2">
+              Toggle a link on to enable it. Disabled links won't appear on the public page.
+            </p>
+
+            <div className="divide-y divide-zinc-800/60 rounded-lg border border-zinc-800/60 overflow-hidden">
+              {LINK_FIELDS.map((field) => {
+                const enabled = formData[field.enabledKey as keyof typeof formData] as boolean
+                const value = formData[field.key as keyof typeof formData] as string
+                const Icon = field.icon
+                return (
+                  <div
+                    key={field.key}
+                    className={`flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 px-3 sm:px-4 py-3 transition-colors ${
+                      enabled ? 'bg-zinc-900/30' : 'bg-zinc-950/50 opacity-60'
+                    }`}
+                  >
+                    <ToggleSwitch
+                      checked={enabled}
+                      onChange={(v) => handleChange(field.enabledKey, v)}
+                    />
+                    <Icon
+                      size={14}
+                      className={enabled ? 'text-zinc-400 shrink-0' : 'text-zinc-700 shrink-0'}
+                    />
+                    <span
+                      className={`text-xs font-medium w-24 shrink-0 ${
+                        enabled ? 'text-zinc-300' : 'text-zinc-600'
+                      }`}
+                    >
+                      {field.label}
+                    </span>
+                    <input
+                      type="url"
+                      value={value}
+                      onChange={(e) => handleChange(field.key, e.target.value)}
+                      disabled={!enabled}
+                      placeholder={field.placeholder}
+                      className={`
+                        flex-1 min-w-0 w-full sm:w-auto px-2.5 py-1.5 text-xs rounded-lg border transition-all bg-transparent
+                        placeholder-zinc-700 outline-none
+                        ${enabled
+                          ? 'text-zinc-200 border-zinc-700 focus:border-blue-500/60 focus:bg-zinc-900/50'
+                          : 'text-zinc-700 border-zinc-800 cursor-not-allowed'
+                        }
+                      `}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          </Section>
+
+          {/* Timestamps */}
+          {project?.id && (
+            <div className="flex items-center gap-6 text-xs text-zinc-700 px-1">
+              <span className="flex items-center gap-1.5">
+                <Calendar size={12} />
+                Created {formatDate(project.createdAt)}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock size={12} />
+                Updated {formatDate(project.updatedAt)}
+              </span>
+            </div>
+          )}
+
+          {/* Hidden submit trigger */}
+          <button type="submit" className="hidden" aria-hidden />
+        </form>
+      </div>
+    )
+  }
+)
+
+OverviewTab.displayName = 'OverviewTab'

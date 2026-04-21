@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal'
 import { ApiEndpointType } from '@/lib/validations/project'
 import { generateId } from '@/lib/utils/project-helpers'
 import { Plus, Trash2, Edit2, Code, Copy, Check, ChevronDown, ChevronRight } from 'lucide-react'
+import { AIGenerateButton } from '@/components/AIGenerateButton'
 
 interface ApiStructureTabProps {
   apiStructure: ApiEndpointType[]
@@ -262,7 +263,16 @@ export function ApiStructureTab({ apiStructure, onChange, onSave, isLoading }: A
           </div>
 
           <Textarea
-            label="Description"
+            label={
+              <div className="flex items-center justify-between w-full">
+                <span>Description (AI Optimized)</span>
+                <AIGenerateButton 
+                  onGenerate={(text) => setFormData(prev => ({ ...prev, description: text }))}
+                  promptContext={{ field: "API Endpoint Description", contextData: { method: formData.method, endpoint: formData.endpoint } }}
+                  className="!p-1 scale-75 origin-right"
+                />
+              </div>
+            }
             value={formData.description || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             rows={2}
@@ -270,7 +280,16 @@ export function ApiStructureTab({ apiStructure, onChange, onSave, isLoading }: A
           />
 
           <Textarea
-            label="Request Body (JSON)"
+            label={
+              <div className="flex items-center justify-between w-full">
+                <span>Request Body (JSON)</span>
+                <AIGenerateButton 
+                  onGenerate={(text) => setFormData(prev => ({ ...prev, requestBody: text }))}
+                  promptContext={{ field: "API Request Body", contextData: { method: formData.method, endpoint: formData.endpoint } }}
+                  className="!p-1 scale-75 origin-right"
+                />
+              </div>
+            }
             value={formData.requestBody || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, requestBody: e.target.value }))}
             rows={4}
@@ -279,7 +298,16 @@ export function ApiStructureTab({ apiStructure, onChange, onSave, isLoading }: A
           />
 
           <Textarea
-            label="Response Body (JSON)"
+            label={
+              <div className="flex items-center justify-between w-full">
+                <span>Response Body (JSON)</span>
+                <AIGenerateButton 
+                  onGenerate={(text) => setFormData(prev => ({ ...prev, responseBody: text }))}
+                  promptContext={{ field: "API Response Body", contextData: { method: formData.method, endpoint: formData.endpoint } }}
+                  className="!p-1 scale-75 origin-right"
+                />
+              </div>
+            }
             value={formData.responseBody || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, responseBody: e.target.value }))}
             rows={4}

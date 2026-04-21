@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal'
 import { DatabaseCollectionType } from '@/lib/validations/project'
 import { generateId } from '@/lib/utils/project-helpers'
 import { Plus, Trash2, Edit2, Database, Table, Copy, Check } from 'lucide-react'
+import { AIGenerateButton } from '@/components/AIGenerateButton'
 
 interface DatabaseTabProps {
   databaseDesign: DatabaseCollectionType[]
@@ -208,7 +209,16 @@ export function DatabaseTab({ databaseDesign, onChange, onSave, isLoading }: Dat
           />
 
           <Textarea
-            label="Description"
+            label={
+              <div className="flex items-center justify-between w-full">
+                <span>Description (AI Optimized)</span>
+                <AIGenerateButton 
+                  onGenerate={(text) => setFormData(prev => ({ ...prev, description: text }))}
+                  promptContext={{ field: "Collection Description", contextData: { collection: formData.collection } }}
+                  className="!p-1 scale-75 origin-right"
+                />
+              </div>
+            }
             value={formData.description || ''}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             rows={2}
@@ -216,9 +226,16 @@ export function DatabaseTab({ databaseDesign, onChange, onSave, isLoading }: Dat
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1.5">
-              Fields (JSON format)
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-medium text-gray-300">
+                Fields (JSON format)
+              </label>
+              <AIGenerateButton 
+                onGenerate={(text) => setFormData(prev => ({ ...prev, fields: text }))}
+                promptContext={{ field: "Database Fields Schema", contextData: { collection: formData.collection } }}
+                className="!p-1 scale-75 origin-right"
+              />
+            </div>
             <Textarea
               value={formData.fields || ''}
               onChange={(e) => setFormData(prev => ({ ...prev, fields: e.target.value }))}

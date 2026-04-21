@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
-import { Tabs, TabPanel } from '@/components/ui/Tabs'
+import { TabPanel } from '@/components/ui/Tabs'
 import { Button } from '@/components/ui/FormElements'
-import { OverviewTab } from './tabs/OverviewTab'
+import { SaveBar } from './SaveBar'
+import { EditorSidebar, SidebarItem } from './EditorSidebar'
+import { OverviewTab, OverviewTabHandle } from './tabs/OverviewTab'
 import { FeaturesTab } from './tabs/FeaturesTab'
 import { ModulesTab } from './tabs/ModulesTab'
 import { TechStackTab } from './tabs/TechStackTab'
@@ -23,7 +25,6 @@ import {
   updateProjectApiStructure,
   updateProjectDatabaseDesign,
   updateProjectDeployment,
-  createProject
 } from '@/lib/actions/project-actions'
 import {
   FeatureItemType,
@@ -33,7 +34,7 @@ import {
   FlowEdgeDataType,
   ApiEndpointType,
   DatabaseCollectionType,
-  DeploymentInfoType
+  DeploymentInfoType,
 } from '@/lib/validations/project'
 import {
   LayoutDashboard,
@@ -44,22 +45,32 @@ import {
   Code,
   Database,
   Rocket,
-  ArrowLeft,
-  Save,
-  FileDown
+  FileDown,
+  CheckCircle2,
+  Sparkles,
 } from 'lucide-react'
 
 interface ProjectEditorProps {
-  project?: any
+  project: any
   isNew?: boolean
 }
 
-export function ProjectEditor({ project, isNew = false }: ProjectEditorProps) {
-  const router = useRouter()
-  const [activeTab, setActiveTab] = useState('overview')
-  const [isLoading, setIsLoading] = useState(false)
+/** Track dirty (unsaved) state per section */
+type DirtyMap = Record<string, boolean>
 
-  // Local state for all sections
+export function ProjectEditor({ project }: ProjectEditorProps) {
+  const searchParams = useSearchParams()
+  const justCreated = searchParams.get('created') === '1'
+
+  const [activeSection, setActiveSection] = useState('overview')
+  const [isSaving, setIsSaving] = useState(false)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [dirty, setDirty] = useState<DirtyMap>({})
+  const [showCreatedBanner, setShowCreatedBanner] = useState(justCreated)
+
+  const overviewRef = useRef<OverviewTabHandle>(null)
+
+  // Section data state
   const [features, setFeatures] = useState<FeatureItemType[]>(project?.features || [])
   const [modules, setModules] = useState<ModuleItemType[]>(project?.modules || [])
   const [techStack, setTechStack] = useState<TechStackItemType[]>(project?.techStack || [])
@@ -69,388 +80,336 @@ export function ProjectEditor({ project, isNew = false }: ProjectEditorProps) {
   const [databaseDesign, setDatabaseDesign] = useState<DatabaseCollectionType[]>(project?.databaseDesign || [])
   const [deployment, setDeployment] = useState<DeploymentInfoType | null>(project?.deployment || null)
 
-  // Update local state when project changes
+  // Helpers
+  const markDirty = (section: string) =>
+    setDirty(prev => ({ ...prev, [section]: true }))
+  const markClean = (section: string) =>
+    setDirty(prev => ({ ...prev, [section]: false }))
+  const hasAnyDirty = Object.values(dirty).some(Boolean)
+
+  // Auto-dismiss created banner
   useEffect(() => {
-    if (project) {
-      setFeatures(project.features || [])
-      setModules(project.modules || [])
-      setTechStack(project.techStack || [])
-      setFlowNodes(project.flowDiagram?.nodes || [])
-      setFlowEdges(project.flowDiagram?.edges || [])
-      setApiStructure(project.apiStructure || [])
-      setDatabaseDesign(project.databaseDesign || [])
-      setDeployment(project.deployment || null)
+    if (showCreatedBanner) {
+      const t = setTimeout(() => setShowCreatedBanner(false), 6000)
+      return () => clearTimeout(t)
     }
-  }, [project])
+  }, [showCreatedBanner])
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} /> },
-    { id: 'features', label: 'Features', icon: <Target size={16} />, badge: features.length },
-    { id: 'modules', label: 'Modules & Tasks', icon: <FolderKanban size={16} />, badge: modules.length },
-    { id: 'techstack', label: 'Tech Stack', icon: <Cpu size={16} />, badge: techStack.length },
-    { id: 'flow', label: 'Flow Builder', icon: <Workflow size={16} /> },
-    { id: 'api', label: 'API Structure', icon: <Code size={16} />, badge: apiStructure.length },
-    { id: 'database', label: 'Database', icon: <Database size={16} />, badge: databaseDesign.length },
-    { id: 'deployment', label: 'Deployment', icon: <Rocket size={16} /> }
-  ]
+  // ── Save handlers ──────────────────────────────────────────────────────────
 
-  // Handle overview save (create or update)
+  const saveOverview = async () => {
+    overviewRef.current?.submit()
+  }
+
   const handleOverviewSave = async (data: any) => {
-    setIsLoading(true)
+    setIsSaving(true)
     try {
-      if (isNew) {
-        // Create new project
-        const result = await createProject({
-          ...data,
-          features,
-          modules,
-          techStack,
-          flowDiagram: { nodes: flowNodes, edges: flowEdges },
-          apiStructure,
-          databaseDesign,
-          deployment: deployment || undefined
-        })
-
-        if (result.success) {
-          toast.success('Project created successfully!')
-          router.push('/admin/dashboard')
-        } else {
-          toast.error(result.error || 'Failed to create project')
-        }
-      } else {
-        // Update existing project
-        const result = await updateProject({
-          id: project.id,
-          ...data
-        })
-
-        if (result.success) {
-          toast.success('Project updated successfully!')
-        } else {
-          toast.error(result.error || 'Failed to update project')
-        }
-      }
-    } catch (error) {
-      toast.error('An error occurred')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Save features
-  const handleFeaturesSave = async () => {
-    if (!project?.id) return
-    setIsLoading(true)
-    try {
-      const result = await updateProjectFeatures({
-        projectId: project.id,
-        features
-      })
+      const result = await updateProject({ id: project.id, ...data })
       if (result.success) {
-        toast.success('Features saved!')
+        setLastSaved(new Date())
+        markClean('overview')
+        toast.success('Overview saved')
       } else {
-        toast.error(result.error || 'Failed to save features')
+        toast.error(result.error || 'Failed to save overview')
       }
-    } catch (error) {
+    } catch {
       toast.error('An error occurred')
     } finally {
-      setIsLoading(false)
+      setIsSaving(false)
     }
   }
 
-  // Save modules
-  const handleModulesSave = async () => {
-    if (!project?.id) return
-    setIsLoading(true)
+  const saveFeatures = async () => {
+    setIsSaving(true)
     try {
-      const result = await updateProjectModules({
-        projectId: project.id,
-        modules
-      })
-      if (result.success) {
-        toast.success('Modules saved!')
-      } else {
-        toast.error(result.error || 'Failed to save modules')
-      }
-    } catch (error) {
-      toast.error('An error occurred')
-    } finally {
-      setIsLoading(false)
-    }
+      const result = await updateProjectFeatures({ projectId: project.id, features })
+      if (result.success) { setLastSaved(new Date()); markClean('features'); toast.success('Features saved') }
+      else toast.error(result.error || 'Failed to save features')
+    } catch { toast.error('An error occurred') }
+    finally { setIsSaving(false) }
   }
 
-  // Save tech stack
-  const handleTechStackSave = async () => {
-    if (!project?.id) return
-    setIsLoading(true)
+  const saveModules = async () => {
+    setIsSaving(true)
     try {
-      const result = await updateProjectTechStack({
-        projectId: project.id,
-        techStack
-      })
-      if (result.success) {
-        toast.success('Tech stack saved!')
-      } else {
-        toast.error(result.error || 'Failed to save tech stack')
-      }
-    } catch (error) {
-      toast.error('An error occurred')
-    } finally {
-      setIsLoading(false)
-    }
+      const result = await updateProjectModules({ projectId: project.id, modules })
+      if (result.success) { setLastSaved(new Date()); markClean('modules'); toast.success('Modules saved') }
+      else toast.error(result.error || 'Failed to save modules')
+    } catch { toast.error('An error occurred') }
+    finally { setIsSaving(false) }
   }
 
-  // Save flow diagram
+  const saveTechStack = async () => {
+    setIsSaving(true)
+    try {
+      const result = await updateProjectTechStack({ projectId: project.id, techStack })
+      if (result.success) { setLastSaved(new Date()); markClean('techstack'); toast.success('Tech stack saved') }
+      else toast.error(result.error || 'Failed to save tech stack')
+    } catch { toast.error('An error occurred') }
+    finally { setIsSaving(false) }
+  }
+
   const handleFlowChange = useCallback((nodes: FlowNodeDataType[], edges: FlowEdgeDataType[]) => {
     setFlowNodes(nodes)
     setFlowEdges(edges)
+    markDirty('flow')
   }, [])
 
-  const handleFlowSave = async () => {
-    if (!project?.id) return
-    setIsLoading(true)
+  const saveFlow = async () => {
+    setIsSaving(true)
     try {
-      const result = await updateProjectFlow({
-        projectId: project.id,
-        flowDiagram: { nodes: flowNodes, edges: flowEdges }
-      })
-      if (result.success) {
-        toast.success('Flow diagram saved!')
-      } else {
-        toast.error(result.error || 'Failed to save flow diagram')
-      }
-    } catch (error) {
-      toast.error('An error occurred')
-    } finally {
-      setIsLoading(false)
+      const result = await updateProjectFlow({ projectId: project.id, flowDiagram: { nodes: flowNodes, edges: flowEdges } })
+      if (result.success) { setLastSaved(new Date()); markClean('flow'); toast.success('Flow diagram saved') }
+      else toast.error(result.error || 'Failed to save flow diagram')
+    } catch { toast.error('An error occurred') }
+    finally { setIsSaving(false) }
+  }
+
+  const saveApi = async () => {
+    setIsSaving(true)
+    try {
+      const result = await updateProjectApiStructure({ projectId: project.id, apiStructure })
+      if (result.success) { setLastSaved(new Date()); markClean('api'); toast.success('API structure saved') }
+      else toast.error(result.error || 'Failed to save API structure')
+    } catch { toast.error('An error occurred') }
+    finally { setIsSaving(false) }
+  }
+
+  const saveDatabase = async () => {
+    setIsSaving(true)
+    try {
+      const result = await updateProjectDatabaseDesign({ projectId: project.id, databaseDesign })
+      if (result.success) { setLastSaved(new Date()); markClean('database'); toast.success('Database design saved') }
+      else toast.error(result.error || 'Failed to save database design')
+    } catch { toast.error('An error occurred') }
+    finally { setIsSaving(false) }
+  }
+
+  const saveDeployment = async () => {
+    if (!deployment) return
+    setIsSaving(true)
+    try {
+      const result = await updateProjectDeployment({ projectId: project.id, deployment })
+      if (result.success) { setLastSaved(new Date()); markClean('deployment'); toast.success('Deployment saved') }
+      else toast.error(result.error || 'Failed to save deployment')
+    } catch { toast.error('An error occurred') }
+    finally { setIsSaving(false) }
+  }
+
+  // Dispatch save for the current active section
+  const handleSave = () => {
+    switch (activeSection) {
+      case 'overview':   return saveOverview()
+      case 'features':   return saveFeatures()
+      case 'modules':    return saveModules()
+      case 'techstack':  return saveTechStack()
+      case 'flow':       return saveFlow()
+      case 'api':        return saveApi()
+      case 'database':   return saveDatabase()
+      case 'deployment': return saveDeployment()
     }
   }
 
-  // Save API structure
-  const handleApiSave = async () => {
-    if (!project?.id) return
-    setIsLoading(true)
-    try {
-      const result = await updateProjectApiStructure({
-        projectId: project.id,
-        apiStructure
-      })
-      if (result.success) {
-        toast.success('API structure saved!')
-      } else {
-        toast.error(result.error || 'Failed to save API structure')
-      }
-    } catch (error) {
-      toast.error('An error occurred')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Save database design
-  const handleDatabaseSave = async () => {
-    if (!project?.id) return
-    setIsLoading(true)
-    try {
-      const result = await updateProjectDatabaseDesign({
-        projectId: project.id,
-        databaseDesign
-      })
-      if (result.success) {
-        toast.success('Database design saved!')
-      } else {
-        toast.error(result.error || 'Failed to save database design')
-      }
-    } catch (error) {
-      toast.error('An error occurred')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Save deployment info
-  const handleDeploymentSave = async () => {
-    if (!project?.id || !deployment) return
-    setIsLoading(true)
-    try {
-      const result = await updateProjectDeployment({
-        projectId: project.id,
-        deployment
-      })
-      if (result.success) {
-        toast.success('Deployment info saved!')
-      } else {
-        toast.error(result.error || 'Failed to save deployment info')
-      }
-    } catch (error) {
-      toast.error('An error occurred')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Download AI markdown
   const handleDownloadMarkdown = async () => {
-    if (!project?.id) return
     try {
       const response = await fetch(`/api/projects/${project.id}/markdown`)
-      if (!response.ok) throw new Error('Failed to generate markdown')
-      
+      if (!response.ok) throw new Error()
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
       a.download = `${project.slug || 'project'}-ai-context.md`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      document.body.appendChild(a); a.click()
+      window.URL.revokeObjectURL(url); document.body.removeChild(a)
       toast.success('AI context markdown downloaded!')
-    } catch (error) {
-      toast.error('Failed to download markdown')
-    }
+    } catch { toast.error('Failed to download markdown') }
   }
 
-  return (
-    <div className="min-h-screen bg-zinc-950">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push('/admin/dashboard')}
-                leftIcon={<ArrowLeft size={16} />}
-              >
-                Back
-              </Button>
-              <div>
-                <h1 className="text-xl font-bold text-white">
-                  {isNew ? 'Create New Project' : `Edit: ${project?.title || 'Project'}`}
-                </h1>
-                {project?.slug && (
-                  <p className="text-sm text-gray-400">/{project.slug}</p>
-                )}
-              </div>
-            </div>
+  // ── Sidebar items ──────────────────────────────────────────────────────────
 
-            {!isNew && (
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleDownloadMarkdown}
-                  leftIcon={<FileDown size={16} />}
-                  title="Download AI context markdown"
-                >
-                  AI Context
-                </Button>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-gray-400">
-                    Progress: {project?.overallProgress || 0}%
-                  </span>
-                  <div className="w-32 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${project?.overallProgress || 0}%` }}
-                      className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
+  const sidebarItems: SidebarItem[] = [
+    { id: 'overview', label: 'Overview', icon: <LayoutDashboard size={16} />, hasChanges: dirty.overview },
+    { id: 'features', label: 'Features', icon: <Target size={16} />, badge: features.length, hasChanges: dirty.features },
+    { id: 'modules', label: 'Modules & Tasks', icon: <FolderKanban size={16} />, badge: modules.length, hasChanges: dirty.modules },
+    { id: 'techstack', label: 'Tech Stack', icon: <Cpu size={16} />, badge: techStack.length, hasChanges: dirty.techstack },
+    { id: 'flow', label: 'Flow Builder', icon: <Workflow size={16} />, hasChanges: dirty.flow },
+    { id: 'api', label: 'API Structure', icon: <Code size={16} />, badge: apiStructure.length, hasChanges: dirty.api },
+    { id: 'database', label: 'Database', icon: <Database size={16} />, badge: databaseDesign.length, hasChanges: dirty.database },
+    { id: 'deployment', label: 'Deployment', icon: <Rocket size={16} />, hasChanges: dirty.deployment },
+  ]
+
+  return (
+    <div className="min-h-screen bg-zinc-950 flex flex-col">
+      {/* Sticky SaveBar */}
+      <SaveBar
+        title={project?.title || 'Project'}
+        slug={project?.slug}
+        isSaving={isSaving}
+        hasUnsavedChanges={hasAnyDirty}
+        lastSaved={lastSaved}
+        onSave={handleSave}
+        extraActions={
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDownloadMarkdown}
+            leftIcon={<FileDown size={14} />}
+            className="text-zinc-500 hover:text-zinc-200 hidden sm:flex"
+            title="Download AI context markdown"
+          >
+            AI Context
+          </Button>
+        }
+      />
+
+      {/* "Just created" success banner */}
+      <AnimatePresence>
+        {showCreatedBanner && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="px-6 py-3 bg-emerald-500/10 border-b border-emerald-500/20 flex items-center gap-3">
+              <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+              <p className="text-sm text-emerald-300">
+                <strong>Project created!</strong>{' '}
+                Now fill in the details below — every section has its own save button in the top bar.
+              </p>
+              <button
+                onClick={() => setShowCreatedBanner(false)}
+                className="ml-auto text-emerald-500 hover:text-emerald-300 text-xs"
+              >
+                Dismiss
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main layout: sidebar + content */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
+        {/* Sidebar – desktop only */}
+        <div className="hidden lg:block border-r border-zinc-800/60 px-3 shrink-0">
+          <EditorSidebar
+            items={sidebarItems}
+            activeId={activeSection}
+            onChange={setActiveSection}
+          />
+        </div>
+
+        {/* Mobile tab strip – stacks above content on small screens */}
+        <div className="lg:hidden w-full bg-zinc-950/95 backdrop-blur border-b border-zinc-800/60 overflow-x-auto shrink-0">
+          <div className="flex gap-1 p-2">
+            {sidebarItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveSection(item.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors shrink-0 ${
+                  activeSection === item.id
+                    ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
+                    : 'text-zinc-500 hover:text-zinc-200'
+                }`}
+              >
+                {item.icon}
+                {item.label}
+                {item.hasChanges && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                )}
+              </button>
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Tabs */}
-        <Tabs
-          tabs={isNew ? tabs.slice(0, 1) : tabs}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-          className="mb-6"
-        />
+        {/* Content area */}
+        <div className="flex-1 min-w-0 overflow-y-auto">
+          <div className="max-w-4xl mx-auto px-4 lg:px-8 py-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeSection}
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.18 }}
+              >
+                {activeSection === 'overview' && (
+                  <OverviewTab
+                    ref={overviewRef}
+                    project={project}
+                    onUpdate={handleOverviewSave}
+                    onAnyChange={() => markDirty('overview')}
+                    isLoading={isSaving}
+                  />
+                )}
 
-        {/* Tab Panels */}
-        <TabPanel value="overview" activeValue={activeTab}>
-          <OverviewTab
-            project={project}
-            onUpdate={handleOverviewSave}
-            isLoading={isLoading}
-          />
-        </TabPanel>
+                {activeSection === 'features' && (
+                  <FeaturesTab
+                    features={features}
+                    onChange={(f) => { setFeatures(f); markDirty('features') }}
+                    onSave={saveFeatures}
+                    isLoading={isSaving}
+                  />
+                )}
 
-        {!isNew && (
-          <>
-            <TabPanel value="features" activeValue={activeTab}>
-              <FeaturesTab
-                features={features}
-                onChange={setFeatures}
-                onSave={handleFeaturesSave}
-                isLoading={isLoading}
-              />
-            </TabPanel>
+                {activeSection === 'modules' && (
+                  <ModulesTab
+                    modules={modules}
+                    onChange={(m) => { setModules(m); markDirty('modules') }}
+                    onSave={saveModules}
+                    isLoading={isSaving}
+                  />
+                )}
 
-            <TabPanel value="modules" activeValue={activeTab}>
-              <ModulesTab
-                modules={modules}
-                onChange={setModules}
-                onSave={handleModulesSave}
-                isLoading={isLoading}
-              />
-            </TabPanel>
+                {activeSection === 'techstack' && (
+                  <TechStackTab
+                    techStack={techStack}
+                    onChange={(t) => { setTechStack(t); markDirty('techstack') }}
+                    onSave={saveTechStack}
+                    isLoading={isSaving}
+                  />
+                )}
 
-            <TabPanel value="techstack" activeValue={activeTab}>
-              <TechStackTab
-                techStack={techStack}
-                onChange={setTechStack}
-                onSave={handleTechStackSave}
-                isLoading={isLoading}
-              />
-            </TabPanel>
+                {activeSection === 'flow' && (
+                  <FlowTab
+                    nodes={flowNodes}
+                    edges={flowEdges}
+                    onChange={handleFlowChange}
+                    onSave={saveFlow}
+                    isLoading={isSaving}
+                  />
+                )}
 
-            <TabPanel value="flow" activeValue={activeTab}>
-              <FlowTab
-                nodes={flowNodes}
-                edges={flowEdges}
-                onChange={handleFlowChange}
-                onSave={handleFlowSave}
-                isLoading={isLoading}
-              />
-            </TabPanel>
+                {activeSection === 'api' && (
+                  <ApiStructureTab
+                    apiStructure={apiStructure}
+                    onChange={(a) => { setApiStructure(a); markDirty('api') }}
+                    onSave={saveApi}
+                    isLoading={isSaving}
+                  />
+                )}
 
-            <TabPanel value="api" activeValue={activeTab}>
-              <ApiStructureTab
-                apiStructure={apiStructure}
-                onChange={setApiStructure}
-                onSave={handleApiSave}
-                isLoading={isLoading}
-              />
-            </TabPanel>
+                {activeSection === 'database' && (
+                  <DatabaseTab
+                    databaseDesign={databaseDesign}
+                    onChange={(d) => { setDatabaseDesign(d); markDirty('database') }}
+                    onSave={saveDatabase}
+                    isLoading={isSaving}
+                  />
+                )}
 
-            <TabPanel value="database" activeValue={activeTab}>
-              <DatabaseTab
-                databaseDesign={databaseDesign}
-                onChange={setDatabaseDesign}
-                onSave={handleDatabaseSave}
-                isLoading={isLoading}
-              />
-            </TabPanel>
-
-            <TabPanel value="deployment" activeValue={activeTab}>
-              <DeploymentTab
-                deployment={deployment}
-                onChange={setDeployment}
-                onSave={handleDeploymentSave}
-                isLoading={isLoading}
-              />
-            </TabPanel>
-          </>
-        )}
+                {activeSection === 'deployment' && (
+                  <DeploymentTab
+                    deployment={deployment}
+                    onChange={(d) => { setDeployment(d); markDirty('deployment') }}
+                    onSave={saveDeployment}
+                    isLoading={isSaving}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
     </div>
   )

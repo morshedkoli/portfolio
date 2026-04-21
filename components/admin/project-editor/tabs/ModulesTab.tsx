@@ -12,6 +12,7 @@ import {
   FolderKanban, CheckCircle2, Clock, AlertCircle,
   ChevronDown, ChevronRight, Calendar, User
 } from 'lucide-react'
+import { AIGenerateButton } from '@/components/AIGenerateButton'
 
 interface ModulesTabProps {
   modules: ModuleItemType[]
@@ -233,6 +234,16 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
         <div className="flex gap-4">
           <div className="flex-1">
             <Input
+              label={
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-gray-400">Module Name</span>
+                  <AIGenerateButton 
+                    onGenerate={(text) => setNewModule(prev => ({ ...prev, name: text }))}
+                    promptContext={{ field: "Module Name", contextData: { currentName: newModule.name } }}
+                    className="!p-1 scale-75 origin-right"
+                  />
+                </div>
+              }
               placeholder="Module name..."
               value={newModule.name}
               onChange={(e) => setNewModule(prev => ({ ...prev, name: e.target.value }))}
@@ -245,6 +256,16 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
         </div>
         <div className="mt-3">
           <Textarea
+            label={
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-gray-400">Module Description (SEO/AI Optimized)</span>
+                <AIGenerateButton 
+                  onGenerate={(text) => setNewModule(prev => ({ ...prev, description: text }))}
+                  promptContext={{ field: "Module Description", contextData: { moduleName: newModule.name } }}
+                  className="!p-1 scale-75 origin-right"
+                />
+              </div>
+            }
             placeholder="Module description (optional)..."
             value={newModule.description}
             onChange={(e) => setNewModule(prev => ({ ...prev, description: e.target.value }))}
@@ -451,7 +472,16 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
       >
         <div className="space-y-4">
           <Input
-            label="Task Title"
+            label={
+              <div className="flex items-center justify-between w-full">
+                <span>Task Title</span>
+                <AIGenerateButton 
+                  onGenerate={(text) => setNewTask(prev => ({ ...prev, title: text }))}
+                  promptContext={{ field: "Task Title", contextData: { currentTitle: newTask.title } }}
+                  className="!p-1 scale-75 origin-right"
+                />
+              </div>
+            }
             value={newTask.title || ''}
             onChange={(e) => setNewTask(prev => ({ ...prev, title: e.target.value }))}
             placeholder="What needs to be done?"
@@ -459,7 +489,16 @@ export function ModulesTab({ modules, onChange, onSave, isLoading }: ModulesTabP
           />
 
           <Textarea
-            label="Description"
+            label={
+              <div className="flex items-center justify-between w-full">
+                <span>Description (AI Optimized)</span>
+                <AIGenerateButton 
+                  onGenerate={(text) => setNewTask(prev => ({ ...prev, description: text }))}
+                  promptContext={{ field: "Task Description", contextData: { taskTitle: newTask.title } }}
+                  className="!p-1 scale-75 origin-right"
+                />
+              </div>
+            }
             value={newTask.description || ''}
             onChange={(e) => setNewTask(prev => ({ ...prev, description: e.target.value }))}
             rows={3}

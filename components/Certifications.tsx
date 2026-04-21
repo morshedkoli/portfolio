@@ -1,9 +1,8 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { useInView } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
-import { Award, Calendar, ExternalLink } from 'lucide-react'
+import { Award, Calendar, ExternalLink, ShieldCheck } from 'lucide-react'
 
 interface Certification {
     id: string
@@ -41,38 +40,57 @@ const Certifications = () => {
     if (!loading && certifications.length === 0) return null
 
     return (
-        <section id="certifications" className="py-16 md:py-24 px-4 sm:px-6 relative bg-black/30">
-            <div className="max-w-6xl mx-auto" ref={ref}>
+        <section id="certifications" className="py-20 md:py-28 px-4 sm:px-6 relative overflow-hidden">
+            {/* Background */}
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute bottom-1/3 left-0 w-[400px] h-[400px] bg-amber-600/[0.03] rounded-full blur-[120px]" />
+            </div>
+
+            <div className="max-w-6xl mx-auto relative" ref={ref}>
+                {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 50 }}
                     animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
                     transition={{ duration: 0.8 }}
-                    className="text-center mb-12 md:mb-16"
+                    className="text-center mb-14 md:mb-20"
                 >
-                    <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 md:mb-6 glow-text">
-                        Certifications
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
+                        transition={{ duration: 0.5 }}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 mb-6"
+                    >
+                        <ShieldCheck size={14} className="text-amber-400" />
+                        <span className="text-amber-400 text-sm font-medium">Credentials</span>
+                    </motion.div>
+
+                    <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-5 tracking-tight">
+                        <span className="bg-gradient-to-r from-white via-amber-100 to-white bg-clip-text text-transparent">
+                            Certifications
+                        </span>
                     </h2>
-                    <div className="h-1 w-16 md:w-20 bg-yellow-500 mx-auto rounded-full" />
                 </motion.div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {loading ? (
-                        <div className="col-span-full text-center text-zinc-500">Loading certifications...</div>
+                        <div className="col-span-full flex justify-center py-12">
+                            <div className="w-10 h-10 rounded-full border-2 border-amber-500/20 border-t-amber-500 animate-spin" />
+                        </div>
                     ) : (
                         certifications.map((cert, index) => (
                             <motion.div
                                 key={cert.id}
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                                className="bg-zinc-900/50 border border-zinc-800 p-8 rounded-2xl hover:border-yellow-500/30 transition-all hover:-translate-y-1 group"
+                                initial={{ opacity: 0, y: 30, scale: 0.96 }}
+                                animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 30, scale: 0.96 }}
+                                transition={{ duration: 0.5, delay: index * 0.12 }}
+                                className="glass-card rounded-2xl p-7 group hover:shadow-2xl hover:shadow-amber-500/[0.06] transition-all duration-500"
                             >
-                                <div className="flex items-start justify-between mb-6">
-                                    <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-400">
-                                        <Award size={32} />
+                                <div className="flex items-start justify-between mb-5">
+                                    <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/10 text-amber-400 group-hover:scale-110 transition-transform duration-300">
+                                        <Award size={28} />
                                     </div>
-                                    <span className="text-zinc-500 font-mono text-sm flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-3 py-1 rounded-full">
-                                        <Calendar size={14} />
+                                    <span className="text-gray-500 font-mono text-xs flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.06]">
+                                        <Calendar size={12} />
                                         {new Date(cert.date).toLocaleDateString('en-US', { 
                                             year: 'numeric', 
                                             month: 'short' 
@@ -80,25 +98,26 @@ const Certifications = () => {
                                     </span>
                                 </div>
 
-                                <h3 className="text-2xl font-bold text-white mb-2">{cert.name}</h3>
-                                <h4 className="text-xl text-yellow-400 mb-4">{cert.issuer}</h4>
+                                <h3 className="text-xl font-bold text-white mb-1.5 group-hover:text-amber-300 transition-colors">{cert.name}</h3>
+                                <h4 className="text-base text-amber-400/80 mb-4">{cert.issuer}</h4>
 
                                 {cert.description && (
-                                    <p className="text-zinc-400 leading-relaxed mb-4">
+                                    <p className="text-gray-400/80 leading-relaxed text-sm mb-4">
                                         {cert.description}
                                     </p>
                                 )}
 
                                 {cert.url && (
-                                    <div className="pt-4 border-t border-zinc-800">
+                                    <div className="pt-4 border-t border-white/[0.04]">
                                         <a
                                             href={cert.url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300 transition-colors font-medium"
+                                            className="inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium group/link"
                                         >
-                                            <ExternalLink size={16} />
+                                            <ExternalLink size={14} />
                                             View Credential
+                                            <span className="group-hover/link:translate-x-0.5 transition-transform">→</span>
                                         </a>
                                     </div>
                                 )}

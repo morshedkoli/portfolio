@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation'
+import { Suspense } from 'react'
 import { getProjectById } from '@/lib/actions/project-actions'
 import { ProjectEditor } from '@/components/admin/project-editor/ProjectEditor'
 
@@ -14,5 +15,9 @@ export default async function EditProjectPage({ params }: EditProjectPageProps) 
     notFound()
   }
 
-  return <ProjectEditor project={result.data} />
+  return (
+    <Suspense fallback={null}>
+      <ProjectEditor project={result.data} />
+    </Suspense>
+  )
 }

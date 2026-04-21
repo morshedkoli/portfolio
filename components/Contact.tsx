@@ -132,11 +132,11 @@ const Contact = () => {
   ] : []
 
   return (
-    <section id="contact" className="py-16 md:py-24 px-4 sm:px-6 relative overflow-hidden">
+    <section id="contact" className="py-20 md:py-28 px-4 sm:px-6 relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-20 right-20 w-72 h-72 bg-blue-500/5 rounded-full blur-[100px]" />
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-purple-500/5 rounded-full blur-[100px]" />
+        <div className="absolute top-20 right-20 w-[400px] h-[400px] bg-blue-500/[0.03] rounded-full blur-[120px]" />
+        <div className="absolute bottom-20 left-20 w-[500px] h-[500px] bg-purple-500/[0.03] rounded-full blur-[120px]" />
       </div>
 
       <div className="max-w-6xl mx-auto relative" ref={ref}>
@@ -150,18 +150,18 @@ const Contact = () => {
             initial={{ opacity: 0, scale: 0.5 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-4 md:mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 mb-6"
           >
-            <MessageSquare size={14} className="text-cyan-400 md:size-4" />
-            <span className="text-cyan-400 text-xs md:text-sm font-medium">Let&apos;s Connect</span>
+            <MessageSquare size={14} className="text-cyan-400" />
+            <span className="text-cyan-400 text-sm font-medium">Let&apos;s Connect</span>
           </motion.div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-5 tracking-tight">
             <span className="bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
               Get In Touch
             </span>
           </h2>
-          <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto px-2">
+          <p className="text-base md:text-lg text-gray-400/80 max-w-2xl mx-auto">
             Have a project in mind or want to collaborate? I&apos;d love to hear from you.
           </p>
         </motion.div>
@@ -174,7 +174,7 @@ const Contact = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="lg:col-span-3"
           >
-            <div className="bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-sm rounded-2xl p-8 border border-white/10">
+            <div className="glass-card rounded-2xl p-8">
               <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
                 <Send size={24} className="text-blue-400" />
                 Send a Message

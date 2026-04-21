@@ -67,8 +67,8 @@ const ProjectCard = ({ project, index, isInView, isFeatured = false }: {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 50 }}
-      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+      initial={{ opacity: 0, y: 40, scale: 0.96 }}
+      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 40, scale: 0.96 }}
       transition={{ duration: 0.6, delay: 0.1 + index * 0.1 }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -77,7 +77,7 @@ const ProjectCard = ({ project, index, isInView, isFeatured = false }: {
       }`}
     >
       {/* Card container */}
-      <div className="relative h-full bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden transition-all duration-500 hover:border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/10">
+      <div className="relative h-full bg-gradient-to-br from-white/[0.06] to-white/[0.01] backdrop-blur-sm border border-white/[0.06] rounded-2xl overflow-hidden transition-all duration-500 hover:border-blue-500/20 hover:shadow-2xl hover:shadow-blue-500/[0.08]" style={{ transformStyle: 'preserve-3d' }}>
         
         {/* Image section */}
         <div className={`relative overflow-hidden ${isFeatured ? 'h-56 md:h-64' : 'h-48'}`}>
@@ -395,11 +395,11 @@ const Projects = () => {
   const otherProjects = displayProjects.filter(project => !project.featured)
 
   return (
-    <section id="projects" className="py-16 md:py-24 px-4 sm:px-6 relative overflow-hidden">
+    <section id="projects" className="py-20 md:py-28 px-4 sm:px-6 relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-40 -right-40 w-96 h-96 bg-purple-500/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-40 -left-40 w-96 h-96 bg-blue-500/5 rounded-full blur-[120px]" />
+        <div className="absolute top-40 -right-40 w-[500px] h-[500px] bg-purple-500/[0.03] rounded-full blur-[150px]" />
+        <div className="absolute bottom-40 -left-40 w-[500px] h-[500px] bg-blue-500/[0.03] rounded-full blur-[150px]" />
       </div>
 
       <div className="max-w-7xl mx-auto relative" ref={ref}>
@@ -407,24 +407,24 @@ const Projects = () => {
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
           transition={{ duration: 0.8 }}
-          className="text-center mb-12 md:mb-16"
+          className="text-center mb-14 md:mb-16"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.5 }}
             animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-4 md:mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6"
           >
-            <Rocket size={14} className="text-purple-400 md:size-4" />
-            <span className="text-purple-400 text-xs md:text-sm font-medium">My Work</span>
+            <Rocket size={14} className="text-purple-400" />
+            <span className="text-purple-400 text-sm font-medium">My Work</span>
           </motion.div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-5 tracking-tight">
             <span className="bg-gradient-to-r from-white via-purple-100 to-white bg-clip-text text-transparent">
               Featured Projects
             </span>
           </h2>
-          <p className="text-base md:text-lg text-gray-400 max-w-2xl mx-auto px-2">
+          <p className="text-base md:text-lg text-gray-400/80 max-w-2xl mx-auto">
             {loading ? 'Loading projects...' : `Explore ${displayProjects.length} projects showcasing my skills and passion for development.`}
           </p>
         </motion.div>

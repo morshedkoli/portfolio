@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
-import { ArrowUp } from 'lucide-react'
+import { ArrowUp, Heart } from 'lucide-react'
 
 interface Profile {
     name: string
@@ -53,12 +53,24 @@ const Footer = () => {
 
     return (
         <>
-            <footer className="relative border-t border-white/5 bg-gradient-to-b from-slate-950/50 to-slate-950">
-                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+            <footer className="relative border-t border-white/[0.04]">
+                {/* Gradient line */}
+                <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/30 to-transparent" />
+                
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    <p className="text-sm text-gray-600 text-center">
-                        {settings.copyrightText || `© ${currentYear} ${profile?.name || 'Portfolio'}. All rights reserved.`}
-                    </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <p className="text-sm text-gray-600 flex items-center gap-1.5">
+                            {settings.copyrightText || (
+                                <>
+                                    © {currentYear} {profile?.name || 'Portfolio'}. Built with
+                                    <Heart size={12} className="text-red-400/60 inline" />
+                                </>
+                            )}
+                        </p>
+                        <p className="text-xs text-gray-700">
+                            Crafted with Next.js, Three.js & Framer Motion
+                        </p>
+                    </div>
                 </div>
             </footer>
 
@@ -70,10 +82,14 @@ const Footer = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.8, y: 20 }}
                         onClick={scrollToTop}
-                        className="fixed bottom-6 right-6 z-50 p-3.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/30 group"
+                        className="fixed bottom-6 right-6 z-50 group"
                         aria-label="Scroll to top"
                     >
-                        <ArrowUp size={20} className="group-hover:-translate-y-0.5 transition-transform" />
+                        <div className="relative p-3.5 rounded-2xl overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-90 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 blur-xl opacity-0 group-hover:opacity-40 transition-opacity" />
+                            <ArrowUp size={18} className="relative text-white group-hover:-translate-y-0.5 transition-transform" />
+                        </div>
                     </motion.button>
                 )}
             </AnimatePresence>

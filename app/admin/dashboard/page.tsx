@@ -40,6 +40,7 @@ import {
   Calendar
 } from 'lucide-react'
 import Link from 'next/link'
+import { AIGenerateButton } from '@/components/AIGenerateButton'
 
 // --- Interfaces ---
 
@@ -163,24 +164,27 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout, mobileMenuOpen, setMob
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setMobileMenuOpen(false)}
-            className="fixed inset-0 z-40 md:hidden backdrop-blur-sm bg-black/60"
+            className="fixed inset-0 z-40 md:hidden backdrop-blur-md bg-black/60"
           />
         )}
       </AnimatePresence>
 
       <motion.aside
-        className={`fixed left-0 top-0 h-full w-64 z-50 flex flex-col transition-transform duration-300 bg-[#0a0a1a]/90 backdrop-blur border-r border-white/10 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        className={`fixed left-0 top-0 h-full w-64 z-50 flex flex-col transition-transform duration-300 bg-[#030014]/95 backdrop-blur-2xl border-r border-white/[0.06] shadow-2xl shadow-black/40 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
-        <div className="p-6 border-b border-white/10">
-          <div className="flex items-center gap-2 font-bold text-xl text-white">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center">
-              A
+        <div className="p-6 border-b border-white/[0.06]">
+          <div className="flex items-center gap-3 font-bold text-xl text-white">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl blur-lg opacity-40" />
+              <div className="relative w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-sm font-bold shadow-lg">
+                A
+              </div>
             </div>
-            <span>Admin<span className="text-gray-400">Panel</span></span>
+            <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Admin<span className="text-gray-500">Panel</span></span>
           </div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
           {menuItems.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.id
@@ -191,26 +195,34 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout, mobileMenuOpen, setMob
                   setActiveTab(item.id)
                   setMobileMenuOpen(false)
                 }}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
-                  ? 'bg-blue-600/10 text-blue-500 border border-blue-600/20'
-                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 relative ${isActive
+                  ? 'text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-white/[0.04]'
                   }`}
               >
-                <Icon size={18} />
-                {item.label}
-                {item.badge > 0 && (
-                  <span className="ml-auto bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">{item.badge}</span>
+                {isActive && (
+                  <motion.div
+                    layoutId="adminActiveTab"
+                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/15 to-purple-500/10 border border-blue-500/20"
+                    style={{ boxShadow: '0 0 20px rgba(59,130,246,0.08)' }}
+                    transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
+                  />
                 )}
-                {isActive && !item.badge && <ChevronRight size={14} className="ml-auto" />}
+                <Icon size={18} className={`relative z-10 ${isActive ? 'text-blue-400' : ''}`} />
+                <span className="relative z-10">{item.label}</span>
+                {item.badge > 0 && (
+                  <span className="relative z-10 ml-auto bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center shadow-lg shadow-red-500/30">{item.badge}</span>
+                )}
+                {isActive && !item.badge && <ChevronRight size={14} className="relative z-10 ml-auto text-blue-400" />}
               </button>
             )
           })}
         </nav>
 
-        <div className="p-4 border-t border-white/10">
+        <div className="p-3 border-t border-white/[0.06]">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-400/80 hover:bg-red-500/10 hover:text-red-300 transition-all duration-300"
           >
             <LogOut size={18} />
             Sign Out
@@ -223,18 +235,18 @@ const Sidebar = ({ activeTab, setActiveTab, handleLogout, mobileMenuOpen, setMob
 
 const StatCard = ({ title, value, icon: Icon, color, delay }: any) => (
   <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay }}
-    className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-xl hover:border-white/20 transition-colors group"
+    initial={{ opacity: 0, y: 20, scale: 0.96 }}
+    animate={{ opacity: 1, y: 0, scale: 1 }}
+    transition={{ delay, duration: 0.5 }}
+    className="relative bg-gradient-to-br from-white/[0.06] to-white/[0.01] backdrop-blur-sm border border-white/[0.06] p-6 rounded-2xl hover:border-white/[0.12] transition-all duration-500 group hover:shadow-xl hover:shadow-blue-500/[0.04]"
   >
     <div className="flex items-start justify-between">
       <div>
-        <p className="text-gray-400 text-sm font-medium mb-1">{title}</p>
-        <h3 className="text-2xl font-bold text-white group-hover:scale-105 transition-transform origin-left">{value}</h3>
+        <p className="text-gray-500 text-sm font-medium mb-1.5">{title}</p>
+        <h3 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent group-hover:from-blue-200 group-hover:to-purple-200 transition-all duration-500">{value}</h3>
       </div>
-      <div className={`p-3 rounded-lg ${color} bg-opacity-10`}>
-        <Icon size={24} className={color.replace('bg-', 'text-')} />
+      <div className={`p-3.5 rounded-xl ${color} bg-opacity-10 group-hover:scale-110 transition-transform duration-300`}>
+        <Icon size={22} className={color.replace('bg-', 'text-')} />
       </div>
     </div>
   </motion.div>
@@ -361,6 +373,8 @@ export default function AdminDashboard() {
     siteDescription: '',
     copyrightText: '',
     maintenanceMode: false,
+    googleAiKey: '',
+    openRouterKey: '',
   })
 
   const [loading, setLoading] = useState(false)
@@ -406,6 +420,8 @@ export default function AdminDashboard() {
           siteDescription: s.siteDescription || '',
           copyrightText: s.copyrightText || '',
           maintenanceMode: s.maintenanceMode || false,
+          googleAiKey: s.googleAiKey || '',
+          openRouterKey: s.openRouterKey || '',
         })
       }
     } catch (error) {
@@ -786,10 +802,10 @@ export default function AdminDashboard() {
 
   const unreadCount = messages.filter(m => m.status === 'unread').length
 
-  if (!isAuthenticated) return <div className="min-h-screen bg-[#0a0a1a]" />
+  if (!isAuthenticated) return <div className="min-h-screen bg-[#030014]" />
 
   return (
-    <div className="admin-dashboard min-h-screen font-sans bg-[#0a0a1a] text-gray-200">
+    <div className="admin-dashboard min-h-screen font-sans bg-[#030014] text-gray-200">
       <Sidebar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -801,24 +817,26 @@ export default function AdminDashboard() {
 
       {/* Main Content Area */}
       <main className="md:ml-64 min-h-screen transition-all duration-300">
-        <header className="sticky top-0 z-30 backdrop-blur-md px-6 py-4 flex items-center justify-between bg-[#0a0a1a]/90 border-b border-white/10">
-          <div className="flex items-center gap-4">
+        <header className="sticky top-0 z-30 backdrop-blur-2xl px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 bg-[#030014]/80 border-b border-white/[0.04] min-w-0">
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="md:hidden p-2 hover:bg-white/10 rounded-lg"
+              className="md:hidden p-2 hover:bg-white/[0.06] rounded-xl transition-colors shrink-0"
             >
               <Menu size={20} />
             </button>
-            <h2 className="text-xl font-semibold capitalize tracking-tight">{activeTab}</h2>
+            <h2 className="text-base sm:text-xl font-semibold capitalize tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent truncate">{activeTab}</h2>
           </div>
 
           {/* Header Actions per tab could go here */}
           {activeTab === 'projects' && !editingProject && (
             <Link
               href="/admin/projects/new"
-              className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl text-sm transition-all duration-300 shadow-lg shadow-blue-500/20 shrink-0"
             >
-              <Plus size={16} /> New Project
+              <Plus size={16} />
+              <span className="hidden sm:inline">New Project</span>
             </Link>
           )}
           {activeTab === 'skills' && !editingSkill && (
@@ -827,9 +845,10 @@ export default function AdminDashboard() {
                 name: '', category: 'frontend',
                 proficiency: 50, icon: '', order: skills.length, isEnabled: true
               })}
-              className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl text-sm transition-all duration-300 shadow-lg shadow-blue-500/20 shrink-0"
             >
-              <Plus size={16} /> New Skill
+              <Plus size={16} />
+              <span className="hidden sm:inline">New Skill</span>
             </button>
           )}
           {activeTab === 'certifications' && !editingCertification && (
@@ -837,19 +856,20 @@ export default function AdminDashboard() {
               onClick={() => setEditingCertification({
                 name: '', issuer: '', date: new Date().toISOString().split('T')[0], order: certifications.length
               })}
-              className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-xl text-sm transition-all duration-300 shadow-lg shadow-blue-500/20 shrink-0"
             >
-              <Plus size={16} /> New Certification
+              <Plus size={16} />
+              <span className="hidden sm:inline">New Certification</span>
             </button>
           )}
         </header>
 
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-4 sm:p-6 max-w-7xl mx-auto">
 
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
             <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 <StatCard title="Total Projects" value={projects.length} icon={FileText} color="bg-blue-500" delay={0} />
                 <StatCard title="Featured" value={projects.filter(p => p.featured).length} icon={Eye} color="bg-green-500" delay={0.05} />
                 <StatCard title="Skills" value={skills.length} icon={Zap} color="bg-orange-500" delay={0.1} />
@@ -861,7 +881,7 @@ export default function AdminDashboard() {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
                 {/* Recent Messages */}
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6">
+                <div className="bg-gradient-to-br from-white/[0.06] to-white/[0.01] border border-white/[0.06] rounded-2xl p-6">
                   <div className="flex justify-between items-center mb-4">
                     <h3 className="font-semibold text-gray-200">Recent Messages</h3>
                     <button onClick={() => setActiveTab('messages')} className="text-xs text-blue-400 hover:text-blue-300">View All</button>
@@ -869,7 +889,7 @@ export default function AdminDashboard() {
                   <div className="space-y-3">
                     {messages.length === 0 && <p className="text-gray-400 text-sm">No messages yet.</p>}
                     {messages.slice(0, 3).map((msg) => (
-                      <div key={msg.id} className={`p-3 rounded-lg border ${msg.status === 'unread' ? 'bg-blue-500/5 border-blue-500/20' : 'bg-black/40 border-white/10'}`}>
+                      <div key={msg.id} className={`p-3 rounded-xl border transition-all duration-300 ${msg.status === 'unread' ? 'bg-blue-500/[0.06] border-blue-500/15' : 'bg-white/[0.02] border-white/[0.06]'}`}>
                         <div className="flex justify-between items-center mb-1 gap-2">
                           <span className="text-sm font-medium text-gray-200 truncate">{msg.name}</span>
                           <span className="text-[11px] text-gray-400 shrink-0">{new Date(msg.createdAt).toLocaleDateString()}</span>
@@ -884,7 +904,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Quick Actions */}
-                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-6">
+                <div className="bg-gradient-to-br from-white/[0.06] to-white/[0.01] border border-white/[0.06] rounded-2xl p-6">
                   <h3 className="font-semibold mb-4 text-gray-200">Quick Actions</h3>
                   <div className="grid grid-cols-2 gap-3">
                     {[
@@ -896,7 +916,7 @@ export default function AdminDashboard() {
                       { tab: 'certifications', icon: Award, label: 'Certifications', color: 'text-yellow-500' },
                       { tab: 'messages', icon: Mail, label: 'Messages', color: 'text-red-500' },
                     ].map(({ tab, icon: Icon, label, color }) => (
-                      <button key={tab} onClick={() => setActiveTab(tab)} className="p-3 bg-black/40 border border-white/10 rounded-lg hover:border-white/20 transition-colors text-left flex flex-col gap-2">
+                      <button key={tab} onClick={() => setActiveTab(tab)} className="p-4 bg-white/[0.02] border border-white/[0.06] rounded-xl hover:border-white/[0.12] hover:bg-white/[0.04] transition-all duration-300 text-left flex flex-col gap-2.5 group">
                         <Icon className={color} size={20} />
                         <span className="text-sm font-medium">{label}</span>
                       </button>
@@ -910,8 +930,8 @@ export default function AdminDashboard() {
           {/* PROFILE TAB */}
           {activeTab === 'profile' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto">
-              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden">
-                <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+              <div className="bg-gradient-to-br from-white/[0.06] to-white/[0.01] border border-white/[0.06] rounded-2xl overflow-hidden">
+                <div className="p-6 border-b border-white/[0.06] flex justify-between items-center bg-white/[0.02]">
                   <h3 className="font-semibold text-lg">Personal Information</h3>
                   {!editingProfile ? (
                     <button onClick={() => setEditingProfile(true)} className="flex items-center gap-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm transition-colors border border-white/20">
@@ -939,7 +959,15 @@ export default function AdminDashboard() {
                         )}
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Title</label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Title</label>
+                          {editingProfile && (
+                            <AIGenerateButton 
+                              onGenerate={(text) => setProfile({ ...profile, title: text })}
+                              promptContext={{ field: 'profile-title', contextData: { title: profile.title } }}
+                            />
+                          )}
+                        </div>
                         {editingProfile ? (
                           <input type="text" value={profile.title} onChange={e => setProfile({ ...profile, title: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" />
                         ) : (
@@ -947,7 +975,15 @@ export default function AdminDashboard() {
                         )}
                       </div>
                       <div className="md:col-span-2 space-y-2">
-                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Bio</label>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Bio</label>
+                          {editingProfile && (
+                            <AIGenerateButton 
+                              onGenerate={(text) => setProfile({ ...profile, description: text })}
+                              promptContext={{ field: 'profile-description', contextData: { name: profile.name, title: profile.title } }}
+                            />
+                          )}
+                        </div>
                         {editingProfile ? (
                           <textarea rows={4} value={profile.description} onChange={e => setProfile({ ...profile, description: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none resize-none" />
                         ) : (
@@ -1132,7 +1168,13 @@ className="flex-1 px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm text-gray-300 mb-1">Project Title</label>
+                        <div className="flex justify-between items-end mb-1">
+                          <label className="block text-sm text-gray-300">Project Title</label>
+                          <AIGenerateButton 
+                            onGenerate={(text) => setEditingProject({ ...editingProject, title: text })}
+                            promptContext={{ field: 'project-title', contextData: { title: editingProject.title } }}
+                          />
+                        </div>
                         <input
                           value={editingProject.title}
                           onChange={e => setEditingProject({ ...editingProject, title: e.target.value })}
@@ -1141,7 +1183,13 @@ className="flex-1 px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:
                         />
                       </div>
                       <div>
-                        <label className="block text-sm text-gray-300 mb-1">Description</label>
+                        <div className="flex justify-between items-end mb-1">
+                          <label className="block text-sm text-gray-300">Description</label>
+                          <AIGenerateButton 
+                            onGenerate={(text) => setEditingProject({ ...editingProject, description: text })}
+                            promptContext={{ field: 'project-description', contextData: { title: editingProject.title, type: editingProject.projectType || 'webapp' } }}
+                          />
+                        </div>
                         <textarea
                           value={editingProject.description}
                           onChange={e => setEditingProject({ ...editingProject, description: e.target.value })}
@@ -1353,7 +1401,7 @@ className="p-2 hover:bg-white/10 rounded-lg text-red-400"
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm text-gray-300 mb-1">GitHub URL</label>
                           <input
@@ -1508,7 +1556,14 @@ className="p-2 hover:bg-white/10 rounded-lg text-blue-400"
                   <h3 className="font-semibold mb-4 text-gray-200">{editingSkill.id ? 'Edit Skill' : 'Add New Skill'}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                     <div className="col-span-2">
-                      <label className="text-xs text-gray-400 mb-1 block">Skill Name</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs text-gray-400 block">Skill Name (SEO optimized)</label>
+                        <AIGenerateButton 
+                          onGenerate={(text) => setEditingSkill({ ...editingSkill, name: text })}
+                          promptContext={{ field: "Skill Name", contextData: { currentName: editingSkill.name || '' } }}
+                          className="!p-1 scale-75 origin-right"
+                        />
+                      </div>
                       <input
                         value={editingSkill.name}
                         onChange={e => setEditingSkill({ ...editingSkill, name: e.target.value })}
@@ -1581,7 +1636,14 @@ className="p-2 hover:bg-white/10 rounded-lg text-blue-400"
                             <motion.div key={skill.id} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="bg-white/5 backdrop-blur-md border border-blue-500/40 rounded-lg p-4">
                               <div className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
                                 <div className="md:col-span-2">
-<label className="text-xs text-gray-400 mb-1 block">Skill Name</label>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <label className="text-xs text-gray-400 block">Skill Name</label>
+                                    <AIGenerateButton 
+                                      onGenerate={(text) => setEditingSkill({ ...editingSkill!, name: text })}
+                                      promptContext={{ field: "Skill Name", contextData: { currentName: editingSkill?.name || '' } }}
+                                      className="!p-1 scale-75 origin-right"
+                                    />
+                                  </div>
                                   <input
                                     value={editingSkill!.name}
                                     onChange={e => setEditingSkill({ ...editingSkill!, name: e.target.value })}
@@ -1699,7 +1761,13 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Company</label>
+                        <div className="flex justify-between items-end mb-1">
+                          <label className="text-xs text-gray-400 block">Company</label>
+                          <AIGenerateButton 
+                            onGenerate={(text) => setEditingExperience({ ...editingExperience, company: text })}
+                            promptContext={{ field: 'experience-company', contextData: { company: editingExperience.company } }}
+                          />
+                        </div>
                         <input
                           value={editingExperience.company}
                           onChange={e => setEditingExperience({ ...editingExperience, company: e.target.value })}
@@ -1707,7 +1775,13 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Position</label>
+                        <div className="flex justify-between items-end mb-1">
+                          <label className="text-xs text-gray-400 block">Position</label>
+                          <AIGenerateButton 
+                            onGenerate={(text) => setEditingExperience({ ...editingExperience, position: text })}
+                            promptContext={{ field: 'experience-position', contextData: { position: editingExperience.position } }}
+                          />
+                        </div>
                         <input
                           value={editingExperience.position}
                           onChange={e => setEditingExperience({ ...editingExperience, position: e.target.value })}
@@ -1716,7 +1790,13 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 mb-1 block">Description</label>
+                      <div className="flex justify-between items-end mb-1">
+                        <label className="text-xs text-gray-400 block">Description</label>
+                        <AIGenerateButton 
+                          onGenerate={(text) => setEditingExperience({ ...editingExperience, description: text })}
+                          promptContext={{ field: 'experience-description', contextData: { position: editingExperience.position, company: editingExperience.company } }}
+                        />
+                      </div>
                       <textarea
                         value={editingExperience.description}
                         onChange={e => setEditingExperience({ ...editingExperience, description: e.target.value })}
@@ -1825,7 +1905,13 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Institution</label>
+                        <div className="flex justify-between items-end mb-1">
+                          <label className="text-xs text-gray-400 block">Institution</label>
+                          <AIGenerateButton 
+                            onGenerate={(text) => setEditingEducation({ ...editingEducation, institution: text })}
+                            promptContext={{ field: 'education-institution', contextData: { institution: editingEducation.institution } }}
+                          />
+                        </div>
                         <input
                           value={editingEducation.institution}
                           onChange={e => setEditingEducation({ ...editingEducation, institution: e.target.value })}
@@ -1833,7 +1919,13 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Degree</label>
+                        <div className="flex justify-between items-end mb-1">
+                          <label className="text-xs text-gray-400 block">Degree</label>
+                          <AIGenerateButton 
+                            onGenerate={(text) => setEditingEducation({ ...editingEducation, degree: text })}
+                            promptContext={{ field: 'education-degree', contextData: { degree: editingEducation.degree } }}
+                          />
+                        </div>
                         <input
                           value={editingEducation.degree}
                           onChange={e => setEditingEducation({ ...editingEducation, degree: e.target.value })}
@@ -1850,7 +1942,13 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 mb-1 block">Description</label>
+                      <div className="flex justify-between items-end mb-1">
+                        <label className="text-xs text-gray-400 block">Description</label>
+                        <AIGenerateButton 
+                          onGenerate={(text) => setEditingEducation({ ...editingEducation, description: text })}
+                          promptContext={{ field: 'education-description', contextData: { institution: editingEducation.institution, degree: editingEducation.degree, currentDesc: editingEducation.description } }}
+                        />
+                      </div>
                       <textarea
                         value={editingEducation.description || ''}
                         onChange={e => setEditingEducation({ ...editingEducation, description: e.target.value })}
@@ -1958,7 +2056,13 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Certification Name</label>
+                        <div className="flex justify-between items-end mb-1">
+                          <label className="text-xs text-gray-400 block">Certification Name</label>
+                          <AIGenerateButton 
+                            onGenerate={(text) => setEditingCertification({ ...editingCertification, name: text })}
+                            promptContext={{ field: 'certification-name', contextData: { name: editingCertification.name } }}
+                          />
+                        </div>
                         <input
                           value={editingCertification.name}
                           onChange={e => setEditingCertification({ ...editingCertification, name: e.target.value })}
@@ -1967,7 +2071,13 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Issuer</label>
+                        <div className="flex justify-between items-end mb-1">
+                          <label className="text-xs text-gray-400 block">Issuer</label>
+                          <AIGenerateButton 
+                            onGenerate={(text) => setEditingCertification({ ...editingCertification, issuer: text })}
+                            promptContext={{ field: 'certification-issuer', contextData: { issuer: editingCertification.issuer } }}
+                          />
+                        </div>
                         <input
                           value={editingCertification.issuer}
                           onChange={e => setEditingCertification({ ...editingCertification, issuer: e.target.value })}
@@ -1998,7 +2108,13 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                       </div>
                     </div>
                     <div>
-                      <label className="text-xs text-gray-400 mb-1 block">Description (optional)</label>
+                      <div className="flex justify-between items-end mb-1">
+                        <label className="text-xs text-gray-400 block">Description (optional)</label>
+                        <AIGenerateButton 
+                          onGenerate={(text) => setEditingCertification({ ...editingCertification, description: text })}
+                          promptContext={{ field: 'certification-description', contextData: { name: editingCertification.name, currentDesc: editingCertification.description } }}
+                        />
+                      </div>
                       <textarea
                         value={editingCertification.description || ''}
                         onChange={e => setEditingCertification({ ...editingCertification, description: e.target.value })}
@@ -2159,7 +2275,15 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                 </div>
                 <div className="p-6 space-y-6">
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Site Title</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Site Title</label>
+                      {editingSettings && (
+                        <AIGenerateButton 
+                          onGenerate={(text) => setSettingsForm({ ...settingsForm, siteTitle: text })}
+                          promptContext={{ field: 'settings-site-title', contextData: { title: settingsForm.siteTitle } }}
+                        />
+                      )}
+                    </div>
                     {editingSettings ? (
                       <input type="text" value={settingsForm.siteTitle} onChange={e => setSettingsForm({ ...settingsForm, siteTitle: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="My Portfolio" />
                     ) : (
@@ -2167,7 +2291,15 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                     )}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">SEO Description</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">SEO Description</label>
+                      {editingSettings && (
+                        <AIGenerateButton 
+                          onGenerate={(text) => setSettingsForm({ ...settingsForm, siteDescription: text })}
+                          promptContext={{ field: 'settings-seo-description', contextData: { title: settingsForm.siteTitle } }}
+                        />
+                      )}
+                    </div>
                     {editingSettings ? (
                       <textarea value={settingsForm.siteDescription} onChange={e => setSettingsForm({ ...settingsForm, siteDescription: e.target.value })} rows={3} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none resize-none" placeholder="Meta description for search engines" />
                     ) : (
@@ -2175,12 +2307,41 @@ className="w-4 h-4 rounded border-white/20 bg-white/5"
                     )}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Copyright Text</label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Copyright Text</label>
+                      {editingSettings && (
+                        <AIGenerateButton 
+                          onGenerate={(text) => setSettingsForm({ ...settingsForm, copyrightText: text })}
+                          promptContext={{ field: 'settings-copyright-text', contextData: { copyright: settingsForm.copyrightText } }}
+                        />
+                      )}
+                    </div>
                     {editingSettings ? (
                       <input type="text" value={settingsForm.copyrightText} onChange={e => setSettingsForm({ ...settingsForm, copyrightText: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="All rights reserved." />
                     ) : (
                       <p className="p-2 text-gray-300">{settings.copyrightText || 'Not set'}</p>
                     )}
+                  </div>
+                  <div className="space-y-2 border-t border-white/10 pt-4 mt-4">
+                    <label className="text-xs font-medium text-blue-400 uppercase tracking-wider block mb-2">AI Configuration</label>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">Google AI API Key</label>
+                        {editingSettings ? (
+                          <input type="password" value={settingsForm.googleAiKey} onChange={e => setSettingsForm({ ...settingsForm, googleAiKey: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="AIzaSy..." />
+                        ) : (
+                          <p className="p-2 text-gray-300">{settings.googleAiKey ? '••••••••••••••••' : 'Not set'}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-medium text-gray-400 uppercase tracking-wider">OpenRouter API Key</label>
+                        {editingSettings ? (
+                          <input type="password" value={settingsForm.openRouterKey} onChange={e => setSettingsForm({ ...settingsForm, openRouterKey: e.target.value })} className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-lg focus:ring-1 focus:ring-blue-500 outline-none" placeholder="sk-or-v1-..." />
+                        ) : (
+                          <p className="p-2 text-gray-300">{settings.openRouterKey ? '••••••••••••••••' : 'Not set'}</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   <div className="flex items-center justify-between p-4 bg-black/40 rounded-lg border border-white/10">
                     <div>
